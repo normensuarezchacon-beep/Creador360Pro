@@ -1,0 +1,13 @@
+<resources>
+    <style name="Theme.Creador360" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#8B5CF6</item>
+        <item name="colorPrimaryVariant">#7C3AED</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSecondary">#8B5CF6</item>
+        <item name="colorSurface">#FFFFFF</item>
+        <item name="colorOnSurface">#333333</item>
+        <item name="android:colorBackground">#FAFAFA</item>
+        <item name="android:statusBarColor">#FAFAFA</item>
+        <item name="android:navigationBarColor">#FFFFFF</item>
+    </style>
+</resources>
