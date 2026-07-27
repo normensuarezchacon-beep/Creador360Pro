@@ -1,0 +1,6 @@
+<resources>
+    <color name="canva_purple">#8B5CF6</color>
+    <color name="canva_bg">#FAFAFA</color>
+    <color name="canva_text_primary">#333333</color>
+    <color name="canva_text_secondary">#888888</color>
+</resources>
