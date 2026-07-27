@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/inicioFragment" android:title="Inicio" android:icon="@drawable/ic_home"/>
+    <item android:id="@+id/crearFragment" android:title="Crear" android:icon="@drawable/ic_create"/>
+    <item android:id="@+id/planificarFragment" android:title="Planificar" android:icon="@drawable/ic_calendar"/>
+    <item android:id="@+id/gananciasFragment" android:title="Ganancias" android:icon="@drawable/ic_chart"/>
+    <item android:id="@+id/ajustesFragment" android:title="Ajustes" android:icon="@drawable/ic_settings"/>
+</menu>
