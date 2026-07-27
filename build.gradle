@@ -8,12 +8,12 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.20"
     }
 }
+
 allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
+    // Los repositorios ahora se configuran en settings.gradle
+    // No declarar repositorios aquí
 }
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
