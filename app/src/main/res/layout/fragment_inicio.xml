@@ -1,12 +1,445 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FAFAFA">
-    <TextView
-        android:layout_width="wrap_content"
+    android:background="#FAFAFA"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Inicio"
-        android:textColor="#333333" android:textSize="20sp" />
-</FrameLayout>
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Barra superior con saludo y avatar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvSaludo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="¡Hola, Creador!"
+                    android:textColor="#333333"
+                    android:textSize="22sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif"
+                    android:text="¿Qué creamos hoy?"
+                    android:textColor="#888888"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/ivAvatar"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/circle_avatar_bg"
+                android:contentDescription="Avatar"
+                android:padding="8dp"
+                android:src="@drawable/ic_person" />
+        </LinearLayout>
+
+        <!-- Barra de búsqueda estilo Canva -->
+        <LinearLayout
+            android:id="@+id/btnBuscar"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/search_bar_bg"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="Buscar"
+                android:src="@drawable/ic_search"
+                android:tint="#999999" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:fontFamily="sans-serif"
+                android:text="Buscar ideas, plantillas..."
+                android:textColor="#AAAAAA"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Chips de categorías horizontales -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/llChips"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/chipParaTi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/chip_selected_bg"
+                    android:fontFamily="sans-serif-medium"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
+                    android:text="Para ti"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/chipRedes"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/chip_normal_bg"
+                    android:fontFamily="sans-serif"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
+                    android:text="Redes Sociales"
+                    android:textColor="#666666"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/chipVideo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/chip_normal_bg"
+                    android:fontFamily="sans-serif"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
+                    android:text="Video"
+                    android:textColor="#666666"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/chipMiniaturas"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/chip_normal_bg"
+                    android:fontFamily="sans-serif"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
+                    android:text="Miniaturas"
+                    android:textColor="#666666"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/chipPodcast"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/chip_normal_bg"
+                    android:fontFamily="sans-serif"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
+                    android:text="Podcast"
+                    android:textColor="#666666"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!-- Título de sección -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="Crear nuevo"
+            android:textColor="#333333"
+            android:textSize="16sp" />
+
+        <!-- Grid de acciones rápidas (2 columnas x 3 filas) -->
+        <GridLayout
+            android:id="@+id/gridAcciones"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:columnCount="2"
+            android:rowCount="3">
+
+            <!-- Diseño gráfico -->
+            <LinearLayout
+                android:id="@+id/btnDiseno"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="?attr/selectableItemBackgroundBorderless">
+
+                <ImageView
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:background="@drawable/action_circle_bg"
+                    android:contentDescription="Diseño"
+                    android:padding="14dp"
+                    android:src="@drawable/ic_design" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="sans-serif"
+                    android:text="Diseño"
+                    android:textColor="#555555"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- Video -->
+            <LinearLayout
+                android:id="@+id/btnVideo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="?attr/selectableItemBackgroundBorderless">
+
+                <ImageView
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:background="@drawable/action_circle_bg"
+                    android:contentDescription="Video"
+                    android:padding="14dp"
+                    android:src="@drawable/ic_video" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="sans-serif"
+                    android:text="Video"
+                    android:textColor="#555555"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- Audio / Podcast -->
+            <LinearLayout
+                android:id="@+id/btnAudio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="?attr/selectableItemBackgroundBorderless">
+
+                <ImageView
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:background="@drawable/action_circle_bg"
+                    android:contentDescription="Audio"
+                    android:padding="14dp"
+                    android:src="@drawable/ic_mic" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="sans-serif"
+                    android:text="Audio"
+                    android:textColor="#555555"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- Guión -->
+            <LinearLayout
+                android:id="@+id/btnGuion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="?attr/selectableItemBackgroundBorderless">
+
+                <ImageView
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:background="@drawable/action_circle_bg"
+                    android:contentDescription="Guión"
+                    android:padding="14dp"
+                    android:src="@drawable/ic_script" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="sans-serif"
+                    android:text="Guión"
+                    android:textColor="#555555"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- Teleprompter -->
+            <LinearLayout
+                android:id="@+id/btnTeleprompter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="?attr/selectableItemBackgroundBorderless">
+
+                <ImageView
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:background="@drawable/action_circle_bg"
+                    android:contentDescription="Teleprompter"
+                    android:padding="14dp"
+                    android:src="@drawable/ic_teleprompter" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="sans-serif"
+                    android:text="Teleprompter"
+                    android:textColor="#555555"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- Ideas -->
+            <LinearLayout
+                android:id="@+id/btnIdeas"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="?attr/selectableItemBackgroundBorderless">
+
+                <ImageView
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:background="@drawable/action_circle_bg"
+                    android:contentDescription="Ideas"
+                    android:padding="14dp"
+                    android:src="@drawable/ic_lightbulb" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="sans-serif"
+                    android:text="Ideas"
+                    android:textColor="#555555"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </GridLayout>
+
+        <!-- Título de sección Proyectos recientes -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-medium"
+                android:text="Proyectos recientes"
+                android:textColor="#333333"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tvVerTodos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:text="Ver todos"
+                android:textColor="#8B5CF6"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- Grid de proyectos recientes (placeholder) -->
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="2"
+            android:rowCount="2">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
+                android:layout_margin="4dp"
+                android:background="@drawable/project_placeholder_bg"
+                android:contentDescription="Proyecto vacío"
+                android:padding="20dp"
+                android:src="@drawable/ic_add_photo" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
+                android:layout_margin="4dp"
+                android:background="@drawable/project_placeholder_bg"
+                android:contentDescription="Proyecto vacío"
+                android:padding="20dp"
+                android:src="@drawable/ic_add_photo" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
+                android:layout_margin="4dp"
+                android:background="@drawable/project_placeholder_bg"
+                android:contentDescription="Proyecto vacío"
+                android:padding="20dp"
+                android:src="@drawable/ic_add_photo" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
+                android:layout_margin="4dp"
+                android:background="@drawable/project_placeholder_bg"
+                android:contentDescription="Proyecto vacío"
+                android:padding="20dp"
+                android:src="@drawable/ic_add_photo" />
+        </GridLayout>
+
+        <!-- Marca de agua -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:fontFamily="sans-serif"
+            android:gravity="center"
+            android:text="Creado por invexXo TEAM"
+            android:textColor="#CCCCCC"
+            android:textSize="11sp" />
+
+    </LinearLayout>
+</ScrollView>
