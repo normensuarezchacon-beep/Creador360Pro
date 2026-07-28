@@ -1,5 +1,6 @@
 package com.creador360pro.ui.editor
 
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -13,6 +14,7 @@ import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.setPadding
 import com.creador360pro.R
@@ -37,12 +39,10 @@ class DesignEditorActivity : AppCompatActivity() {
     }
 
     private fun setupToolbar() {
-        // Botón Añadir
         findViewById<Button>(R.id.btnAdd).setOnClickListener {
             showAddMenu()
         }
 
-        // Botón Capas
         findViewById<Button>(R.id.btnLayers).setOnClickListener {
             if (llCapas.visibility == View.VISIBLE) {
                 llCapas.visibility = View.GONE
@@ -52,23 +52,19 @@ class DesignEditorActivity : AppCompatActivity() {
             }
         }
 
-        // Botón Guardar
         findViewById<Button>(R.id.btnSave).setOnClickListener {
             saveProject()
         }
 
-        // Botón Exportar
         findViewById<Button>(R.id.btnExport).setOnClickListener {
             exportImage()
         }
 
-        // Botón Deshacer
         findViewById<Button>(R.id.btnUndo).setOnClickListener {
             canvasView.undo()
             updateLayersList()
         }
 
-        // Botón Rehacer
         findViewById<Button>(R.id.btnRedo).setOnClickListener {
             canvasView.redo()
             updateLayersList()
@@ -76,7 +72,6 @@ class DesignEditorActivity : AppCompatActivity() {
     }
 
     private fun setupCanvas() {
-        // Añadir una capa inicial de fondo blanco
         canvasView.addLayer(DesignLayer(type = LayerType.BACKGROUND, color = "#FFFFFF"))
         updateLayersList()
     }
@@ -85,7 +80,7 @@ class DesignEditorActivity : AppCompatActivity() {
         val options = arrayOf("Texto", "Imagen desde galería", "Forma (círculo)", "Forma (rectángulo)")
         AlertDialog.Builder(this)
             .setTitle("Añadir elemento")
-            .setItems(options) { _, which ->
+            .setItems(options) { dialog, which ->
                 when (which) {
                     0 -> addTextLayer()
                     1 -> addImageLayer()
@@ -104,7 +99,7 @@ class DesignEditorActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle("Añadir texto")
             .setView(input)
-            .setPositiveButton("Añadir") { _, _ ->
+            .setPositiveButton("Añadir") { dialog, _ ->
                 val text = input.text.toString()
                 if (text.isNotEmpty()) {
                     canvasView.addLayer(
@@ -126,11 +121,11 @@ class DesignEditorActivity : AppCompatActivity() {
     }
 
     private fun addImageLayer() {
-        val intent = android.content.Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         startActivityForResult(intent, 100)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 100 && resultCode == RESULT_OK) {
             val uri = data?.data
@@ -166,7 +161,8 @@ class DesignEditorActivity : AppCompatActivity() {
     }
 
     private fun updateLayersList() {
-        llCapas.removeAllViews()
+        val container = findViewById<LinearLayout>(R.id.llCapasContainer)
+        container.removeAllViews()
 
         canvasView.getLayers().forEachIndexed { index, layer ->
             val layerView = TextView(this).apply {
@@ -179,7 +175,12 @@ class DesignEditorActivity : AppCompatActivity() {
                 }
                 setTextColor(Color.WHITE)
                 setPadding(16)
-                setBackgroundColor(if (index == canvasView.getSelectedLayerIndex()) Color.parseColor("#8B5CF6") else Color.DKGRAY)
+                setBackgroundColor(
+                    if (index == canvasView.getSelectedLayerIndex()) 
+                        Color.parseColor("#8B5CF6") 
+                    else 
+                        Color.DKGRAY
+                )
                 gravity = Gravity.CENTER_VERTICAL
 
                 setOnClickListener {
@@ -187,7 +188,7 @@ class DesignEditorActivity : AppCompatActivity() {
                     updateLayersList()
                 }
             }
-            llCapas.addView(layerView)
+            container.addView(layerView)
         }
     }
 
@@ -197,9 +198,6 @@ class DesignEditorActivity : AppCompatActivity() {
 
     private fun exportImage() {
         val bitmap = canvasView.exportToBitmap()
-        val bytes = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, bytes)
-
         val path = MediaStore.Images.Media.insertImage(
             contentResolver,
             bitmap,
