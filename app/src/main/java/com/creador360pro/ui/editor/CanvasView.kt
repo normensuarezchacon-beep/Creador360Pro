@@ -6,6 +6,7 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
+import com.creador360pro.util.FontManager
 
 class CanvasView @JvmOverloads constructor(
     context: Context,
@@ -120,6 +121,9 @@ class CanvasView @JvmOverloads constructor(
                         color = Color.parseColor(layer.color)
                         textSize = layer.textSize
                         isAntiAlias = true
+                        if (layer.fontName != null) {
+                            typeface = FontManager.getTypeface(context, layer.fontName!!)
+                        }
                     }
                     canvas.drawText(layer.text ?: "", layer.x, layer.y + layer.textSize, paint)
                 }
@@ -176,7 +180,6 @@ class CanvasView @JvmOverloads constructor(
 
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                // Buscar capa tocada (en orden inverso para seleccionar la de arriba)
                 for (i in layers.size - 1 downTo 0) {
                     val layer = layers[i]
                     if (event.x >= layer.x && event.x <= layer.x + layer.width &&
