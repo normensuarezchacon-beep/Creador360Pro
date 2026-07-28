@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#1A1A1A">
+
+    <!-- Barra de herramientas superior -->
+    <LinearLayout
+        android:id="@+id/llToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="#2A2A2A"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="8dp">
+
+        <Button
+            android:id="@+id/btnAdd"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="+"
+            android:textSize="18sp"
+            android:backgroundTint="#8B5CF6"
+            android:minWidth="40dp" />
+
+        <Button
+            android:id="@+id/btnLayers"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="Capas"
+            android:textSize="11sp"
+            android:layout_marginStart="4dp"
+            android:backgroundTint="#555555"
+            android:minWidth="50dp" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/btnUndo"
+            android:layout_width="40dp"
+            android:layout_height="36dp"
+            android:text="↩"
+            android:textSize="16sp"
+            android:backgroundTint="#555555" />
+
+        <Button
+            android:id="@+id/btnRedo"
+            android:layout_width="40dp"
+            android:layout_height="36dp"
+            android:text="↪"
+            android:textSize="16sp"
+            android:backgroundTint="#555555" />
+
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="Guardar"
+            android:textSize="11sp"
+            android:backgroundTint="#555555" />
+
+        <Button
+            android:id="@+id/btnExport"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="Exportar"
+            android:textSize="11sp"
+            android:backgroundTint="#8B5CF6" />
+    </LinearLayout>
+
+    <!-- Lienzo -->
+    <com.creador360pro.ui.editor.CanvasView
+        android:id="@+id/canvasView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Panel de capas (oculto por defecto) -->
+    <LinearLayout
+        android:id="@+id/llCapas"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:background="#2A2A2A"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:padding="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CAPAS"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:id="@+id/llCapasContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </ScrollView>
+    </LinearLayout>
+</LinearLayout>
