@@ -7,6 +7,8 @@ import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import com.creador360pro.util.FontManager
+import org.json.JSONArray
+import org.json.JSONObject
 
 class CanvasView @JvmOverloads constructor(
     context: Context,
@@ -14,7 +16,7 @@ class CanvasView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    private val layers = mutableListOf<DesignLayer>()
+    val layers = mutableListOf<DesignLayer>()
     private var selectedLayerIndex = -1
     private val undoStack = mutableListOf<MutableList<DesignLayer>>()
     private val redoStack = mutableListOf<MutableList<DesignLayer>>()
@@ -79,6 +81,47 @@ class CanvasView @JvmOverloads constructor(
         canvas.drawColor(Color.WHITE)
         drawLayers(canvas)
         return bitmap
+    }
+
+    fun toJson(): String {
+        val jsonArray = JSONArray()
+        layers.forEach { layer ->
+            val json = JSONObject()
+            json.put("type", layer.type.name)
+            json.put("x", layer.x.toDouble())
+            json.put("y", layer.y.toDouble())
+            json.put("width", layer.width.toDouble())
+            json.put("height", layer.height.toDouble())
+            json.put("color", layer.color)
+            json.put("textSize", layer.textSize.toDouble())
+            layer.text?.let { json.put("text", it) }
+            layer.fontName?.let { json.put("fontName", it) }
+            jsonArray.put(json)
+        }
+        return jsonArray.toString()
+    }
+
+    fun fromJson(jsonString: String) {
+        layers.clear()
+        val jsonArray = JSONArray(jsonString)
+        for (i in 0 until jsonArray.length()) {
+            val json = jsonArray.getJSONObject(i)
+            val type = LayerType.valueOf(json.getString("type"))
+            val layer = DesignLayer(
+                type = type,
+                x = json.getDouble("x").toFloat(),
+                y = json.getDouble("y").toFloat(),
+                width = json.getDouble("width").toFloat(),
+                height = json.getDouble("height").toFloat(),
+                color = json.optString("color", "#000000"),
+                textSize = json.optDouble("textSize", 40.0).toFloat(),
+                text = json.optString("text", null),
+                fontName = json.optString("fontName", null)
+            )
+            layers.add(layer)
+        }
+        selectedLayerIndex = -1
+        invalidate()
     }
 
     private fun saveState() {
@@ -159,7 +202,6 @@ class CanvasView @JvmOverloads constructor(
                 }
             }
 
-            // Dibujar borde de selección
             if (index == selectedLayerIndex) {
                 val paint = Paint().apply {
                     color = Color.parseColor("#8B5CF6")
