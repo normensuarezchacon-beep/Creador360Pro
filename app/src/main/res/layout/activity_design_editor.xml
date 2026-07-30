@@ -5,7 +5,6 @@
     android:orientation="vertical"
     android:background="#1A1A1A">
 
-    <!-- Barra de herramientas superior -->
     <LinearLayout
         android:id="@+id/llToolbar"
         android:layout_width="match_parent"
@@ -39,6 +38,16 @@
             android:layout_width="wrap_content"
             android:layout_height="36dp"
             android:text="Prop."
+            android:textSize="11sp"
+            android:layout_marginStart="4dp"
+            android:backgroundTint="#555555"
+            android:minWidth="50dp" />
+
+        <Button
+            android:id="@+id/btnTemplates"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="Plant."
             android:textSize="11sp"
             android:layout_marginStart="4dp"
             android:backgroundTint="#555555"
@@ -82,14 +91,12 @@
             android:backgroundTint="#8B5CF6" />
     </LinearLayout>
 
-    <!-- Lienzo -->
     <com.creador360pro.ui.editor.CanvasView
         android:id="@+id/canvasView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <!-- Panel de capas (oculto por defecto) -->
     <LinearLayout
         android:id="@+id/llCapas"
         android:layout_width="match_parent"
