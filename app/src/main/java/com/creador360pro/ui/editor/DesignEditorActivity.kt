@@ -1,9 +1,7 @@
 package com.creador360pro.ui.editor
 
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.Color
-import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.Gravity
@@ -17,7 +15,6 @@ import com.creador360pro.util.FilterType
 import com.creador360pro.util.FontManager
 import com.creador360pro.util.ImageFilterUtil
 import com.creador360pro.util.TFLiteHelper
-import java.io.ByteArrayOutputStream
 
 class DesignEditorActivity : AppCompatActivity() {
 
@@ -60,6 +57,15 @@ class DesignEditorActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnRedo).setOnClickListener {
             canvasView.redo()
             updateLayersList()
+        }
+
+        findViewById<Button>(R.id.btnProperties).setOnClickListener {
+            val index = canvasView.getSelectedLayerIndex()
+            if (index >= 0 && index < canvasView.getLayers().size) {
+                showLayerProperties(canvasView.getLayers()[index])
+            } else {
+                Toast.makeText(this, "Selecciona una capa primero", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -311,9 +317,40 @@ class DesignEditorActivity : AppCompatActivity() {
     }
 
     private fun removeBackground(layer: DesignLayer) {
+        val modelName = TFLiteHelper.getActiveModelName()
+
+        if (modelName == "Ninguno") {
+            AlertDialog.Builder(this)
+                .setTitle("Modelos no disponibles")
+                .setMessage("No se encontró ningún modelo de IA.\n\n" +
+                        "Asegúrate de tener al menos:\n" +
+                        "- mediapipe_selfie_segmentation.tflite\n" +
+                        "en la carpeta app/src/main/assets/models/")
+                .setPositiveButton("Entendido", null)
+                .show()
+            return
+        }
+
+        val deviceInfo = TFLiteHelper.getDeviceInfo(this)
+
+        AlertDialog.Builder(this)
+            .setTitle("Eliminar fondo con IA")
+            .setMessage("Tu dispositivo: $deviceInfo\n\n" +
+                    "Se usará el modelo más adecuado automáticamente.\n\n" +
+                    "¿Continuar?")
+            .setPositiveButton("Sí, eliminar fondo") { _, _ ->
+                executeBackgroundRemoval(layer)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun executeBackgroundRemoval(layer: DesignLayer) {
+        val modelName = TFLiteHelper.getActiveModelName()
+
         val progressDialog = AlertDialog.Builder(this)
             .setTitle("Procesando...")
-            .setMessage("Eliminando fondo con IA. Esto puede tardar unos segundos.")
+            .setMessage("Eliminando fondo con $modelName...")
             .setCancelable(false)
             .create()
         progressDialog.show()
@@ -328,7 +365,11 @@ class DesignEditorActivity : AppCompatActivity() {
                         layer.width = result.width.toFloat()
                         layer.height = result.height.toFloat()
                         canvasView.invalidate()
-                        Toast.makeText(this, "Fondo eliminado", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this,
+                            "¡Fondo eliminado! ($modelName)",
+                            Toast.LENGTH_LONG
+                        ).show()
                     } else {
                         Toast.makeText(this, "Error al procesar la imagen", Toast.LENGTH_SHORT).show()
                     }
