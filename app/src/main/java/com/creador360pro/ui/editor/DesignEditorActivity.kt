@@ -16,6 +16,7 @@ import com.creador360pro.util.FilterType
 import com.creador360pro.util.FontManager
 import com.creador360pro.util.ImageFilterUtil
 import com.creador360pro.util.TFLiteHelper
+import kotlinx.coroutines.runBlocking
 import java.io.ByteArrayOutputStream
 
 class DesignEditorActivity : AppCompatActivity() {
@@ -474,10 +475,19 @@ class DesignEditorActivity : AppCompatActivity() {
         )
 
         Thread {
-            val db = com.creador360pro.data.db.AppDatabase.getInstance(this)
-            db.designProjectDao().insertProject(project)
-            runOnUiThread {
-                Toast.makeText(this, "¡Proyecto guardado!", Toast.LENGTH_SHORT).show()
+            try {
+                val db = com.creador360pro.data.db.AppDatabase.getInstance(this)
+                val dao = db.designProjectDao()
+                runBlocking {
+                    dao.insertProject(project)
+                }
+                runOnUiThread {
+                    Toast.makeText(this, "¡Proyecto guardado!", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    Toast.makeText(this, "Error al guardar: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
             }
         }.start()
     }
@@ -487,15 +497,6 @@ class DesignEditorActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle("Exportar como")
             .setItems(formats) { _, which ->
-                val bitmap = canvasView.exportToBitmap()
-                val format = if (which == 0) Bitmap.CompressFormat.JPEG else Bitmap.CompressFormat.PNG
-                val extension = if (which == 0) "jpg" else "png"
-                val quality = if (which == 0) 90 else 100
-
-                val bytes = ByteArrayOutputStream()
-                bitmap.compress(format, quality, bytes)
-
-                val path = MediaStore.Images.Media.insertImage(
-                    contentResolver,
-                    bitmap,
-                   
+                try {
+                    val bitmap = canvasView.exportToBitmap()
+                    val format = if (which == 0) Bitmap.CompressFormat.JPEG else Bitmap.CompressF
