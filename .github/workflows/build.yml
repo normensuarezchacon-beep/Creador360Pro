@@ -21,6 +21,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: 8.4
+
+      - name: Clean build
+        run: gradle clean
           
       - name: Build debug APK
         run: gradle assembleDebug
