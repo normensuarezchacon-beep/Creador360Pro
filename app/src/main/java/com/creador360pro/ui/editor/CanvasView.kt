@@ -16,7 +16,7 @@ class CanvasView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    val layers = mutableListOf<DesignLayer>()
+    private val layersList = mutableListOf<DesignLayer>()
     private var selectedLayerIndex = -1
     private val undoStack = mutableListOf<MutableList<DesignLayer>>()
     private val redoStack = mutableListOf<MutableList<DesignLayer>>()
@@ -27,8 +27,8 @@ class CanvasView @JvmOverloads constructor(
 
     private val scaleDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector): Boolean {
-            if (selectedLayerIndex >= 0 && selectedLayerIndex < layers.size) {
-                val layer = layers[selectedLayerIndex]
+            if (selectedLayerIndex >= 0 && selectedLayerIndex < layersList.size) {
+                val layer = layersList[selectedLayerIndex]
                 layer.width *= detector.scaleFactor
                 layer.height *= detector.scaleFactor
                 invalidate()
@@ -39,38 +39,45 @@ class CanvasView @JvmOverloads constructor(
 
     fun addLayer(layer: DesignLayer) {
         saveState()
-        layers.add(layer)
-        selectedLayerIndex = layers.size - 1
+        layersList.add(layer)
+        selectedLayerIndex = layersList.size - 1
         invalidate()
     }
 
-    fun getLayers(): List<DesignLayer> = layers.toList()
+    fun getLayersList(): List<DesignLayer> = layersList.toList()
 
     fun getSelectedLayerIndex(): Int = selectedLayerIndex
 
     fun selectLayer(index: Int) {
-        if (index in layers.indices) {
+        if (index in layersList.indices) {
             selectedLayerIndex = index
             invalidate()
         }
     }
 
+    fun clearLayers() {
+        saveState()
+        layersList.clear()
+        selectedLayerIndex = -1
+        invalidate()
+    }
+
     fun undo() {
         if (undoStack.isNotEmpty()) {
-            redoStack.add(layers.toMutableList())
-            layers.clear()
-            layers.addAll(undoStack.removeAt(undoStack.size - 1))
-            if (selectedLayerIndex >= layers.size) selectedLayerIndex = layers.size - 1
+            redoStack.add(layersList.toMutableList())
+            layersList.clear()
+            layersList.addAll(undoStack.removeAt(undoStack.size - 1))
+            if (selectedLayerIndex >= layersList.size) selectedLayerIndex = layersList.size - 1
             invalidate()
         }
     }
 
     fun redo() {
         if (redoStack.isNotEmpty()) {
-            undoStack.add(layers.toMutableList())
-            layers.clear()
-            layers.addAll(redoStack.removeAt(redoStack.size - 1))
-            if (selectedLayerIndex >= layers.size) selectedLayerIndex = layers.size - 1
+            undoStack.add(layersList.toMutableList())
+            layersList.clear()
+            layersList.addAll(redoStack.removeAt(redoStack.size - 1))
+            if (selectedLayerIndex >= layersList.size) selectedLayerIndex = layersList.size - 1
             invalidate()
         }
     }
@@ -85,7 +92,7 @@ class CanvasView @JvmOverloads constructor(
 
     fun toJson(): String {
         val jsonArray = JSONArray()
-        layers.forEach { layer ->
+        layersList.forEach { layer ->
             val json = JSONObject()
             json.put("type", layer.type.name)
             json.put("x", layer.x.toDouble())
@@ -102,7 +109,7 @@ class CanvasView @JvmOverloads constructor(
     }
 
     fun fromJson(jsonString: String) {
-        layers.clear()
+        layersList.clear()
         val jsonArray = JSONArray(jsonString)
         for (i in 0 until jsonArray.length()) {
             val json = jsonArray.getJSONObject(i)
@@ -118,14 +125,14 @@ class CanvasView @JvmOverloads constructor(
                 text = json.optString("text", null),
                 fontName = json.optString("fontName", null)
             )
-            layers.add(layer)
+            layersList.add(layer)
         }
         selectedLayerIndex = -1
         invalidate()
     }
 
     private fun saveState() {
-        undoStack.add(layers.toMutableList())
+        undoStack.add(layersList.toMutableList())
         redoStack.clear()
     }
 
@@ -150,7 +157,7 @@ class CanvasView @JvmOverloads constructor(
     }
 
     private fun drawLayers(canvas: Canvas) {
-        layers.forEachIndexed { index, layer ->
+        layersList.forEachIndexed { index, layer ->
             when (layer.type) {
                 LayerType.BACKGROUND -> {
                     val paint = Paint().apply {
@@ -172,12 +179,7 @@ class CanvasView @JvmOverloads constructor(
                 }
                 LayerType.IMAGE -> {
                     layer.bitmap?.let { bmp ->
-                        canvas.drawBitmap(
-                            bmp,
-                            null,
-                            RectF(layer.x, layer.y, layer.x + layer.width, layer.y + layer.height),
-                            null
-                        )
+                        canvas.drawBitmap(bmp, null, RectF(layer.x, layer.y, layer.x + layer.width, layer.y + layer.height), null)
                     }
                 }
                 LayerType.CIRCLE -> {
@@ -186,12 +188,7 @@ class CanvasView @JvmOverloads constructor(
                         style = Paint.Style.FILL
                         isAntiAlias = true
                     }
-                    canvas.drawCircle(
-                        layer.x + layer.width / 2,
-                        layer.y + layer.height / 2,
-                        layer.width / 2,
-                        paint
-                    )
+                    canvas.drawCircle(layer.x + layer.width / 2, layer.y + layer.height / 2, layer.width / 2, paint)
                 }
                 LayerType.RECTANGLE -> {
                     val paint = Paint().apply {
@@ -208,22 +205,17 @@ class CanvasView @JvmOverloads constructor(
                     style = Paint.Style.STROKE
                     strokeWidth = 3f
                 }
-                canvas.drawRect(
-                    layer.x - 5, layer.y - 5,
-                    layer.x + layer.width + 5, layer.y + layer.height + 5,
-                    paint
-                )
+                canvas.drawRect(layer.x - 5, layer.y - 5, layer.x + layer.width + 5, layer.y + layer.height + 5, paint)
             }
         }
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         scaleDetector.onTouchEvent(event)
-
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                for (i in layers.size - 1 downTo 0) {
-                    val layer = layers[i]
+                for (i in layersList.size - 1 downTo 0) {
+                    val layer = layersList[i]
                     if (event.x >= layer.x && event.x <= layer.x + layer.width &&
                         event.y >= layer.y && event.y <= layer.y + layer.height) {
                         selectedLayerIndex = i
@@ -241,7 +233,7 @@ class CanvasView @JvmOverloads constructor(
                 if (isDragging && selectedLayerIndex >= 0) {
                     val dx = event.x - lastX
                     val dy = event.y - lastY
-                    val layer = layers[selectedLayerIndex]
+                    val layer = layersList[selectedLayerIndex]
                     layer.x += dx
                     layer.y += dy
                     lastX = event.x
@@ -249,9 +241,7 @@ class CanvasView @JvmOverloads constructor(
                     invalidate()
                 }
             }
-            MotionEvent.ACTION_UP -> {
-                isDragging = false
-            }
+            MotionEvent.ACTION_UP -> { isDragging = false }
         }
         return true
     }
