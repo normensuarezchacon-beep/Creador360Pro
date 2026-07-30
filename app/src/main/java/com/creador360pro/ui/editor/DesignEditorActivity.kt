@@ -317,15 +317,18 @@ class DesignEditorActivity : AppCompatActivity() {
     }
 
     private fun removeBackground(layer: DesignLayer) {
-        val modelName = TFLiteHelper.getActiveModelName()
+        if (!TFLiteHelper.isAvailable()) {
+            val deviceInfo = TFLiteHelper.getDeviceInfo(this)
+            val requiredSpecs = TFLiteHelper.getRequiredSpecs()
 
-        if (modelName == "Ninguno") {
             AlertDialog.Builder(this)
-                .setTitle("Modelos no disponibles")
-                .setMessage("No se encontró ningún modelo de IA.\n\n" +
-                        "Asegúrate de tener al menos:\n" +
-                        "- mediapipe_selfie_segmentation.tflite\n" +
-                        "en la carpeta app/src/main/assets/models/")
+                .setTitle("Función no disponible")
+                .setMessage(
+                    "Eliminar fondo con IA requiere un dispositivo de gama alta.\n\n" +
+                    "Tu dispositivo:\n$deviceInfo\n\n" +
+                    "Requisitos mínimos:\n$requiredSpecs\n\n" +
+                    "Esta función estará disponible para más dispositivos en próximas actualizaciones."
+                )
                 .setPositiveButton("Entendido", null)
                 .show()
             return
@@ -335,9 +338,7 @@ class DesignEditorActivity : AppCompatActivity() {
 
         AlertDialog.Builder(this)
             .setTitle("Eliminar fondo con IA")
-            .setMessage("Tu dispositivo: $deviceInfo\n\n" +
-                    "Se usará el modelo más adecuado automáticamente.\n\n" +
-                    "¿Continuar?")
+            .setMessage("Tu dispositivo:\n$deviceInfo\n\n¿Continuar?")
             .setPositiveButton("Sí, eliminar fondo") { _, _ ->
                 executeBackgroundRemoval(layer)
             }
@@ -346,11 +347,9 @@ class DesignEditorActivity : AppCompatActivity() {
     }
 
     private fun executeBackgroundRemoval(layer: DesignLayer) {
-        val modelName = TFLiteHelper.getActiveModelName()
-
         val progressDialog = AlertDialog.Builder(this)
             .setTitle("Procesando...")
-            .setMessage("Eliminando fondo con $modelName...")
+            .setMessage("Eliminando fondo con DeepLabV3...")
             .setCancelable(false)
             .create()
         progressDialog.show()
@@ -365,11 +364,7 @@ class DesignEditorActivity : AppCompatActivity() {
                         layer.width = result.width.toFloat()
                         layer.height = result.height.toFloat()
                         canvasView.invalidate()
-                        Toast.makeText(
-                            this,
-                            "¡Fondo eliminado! ($modelName)",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        Toast.makeText(this, "¡Fondo eliminado!", Toast.LENGTH_LONG).show()
                     } else {
                         Toast.makeText(this, "Error al procesar la imagen", Toast.LENGTH_SHORT).show()
                     }
