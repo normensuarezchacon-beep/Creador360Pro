@@ -1,6 +1,7 @@
 package com.creador360pro.ui.editor
 
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Bundle
 import android.provider.MediaStore
@@ -15,6 +16,7 @@ import com.creador360pro.util.FilterType
 import com.creador360pro.util.FontManager
 import com.creador360pro.util.ImageFilterUtil
 import com.creador360pro.util.TFLiteHelper
+import java.io.ByteArrayOutputStream
 
 class DesignEditorActivity : AppCompatActivity() {
 
@@ -66,6 +68,10 @@ class DesignEditorActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Selecciona una capa primero", Toast.LENGTH_SHORT).show()
             }
+        }
+
+        findViewById<Button>(R.id.btnTemplates).setOnClickListener {
+            showTemplates()
         }
     }
 
@@ -393,27 +399,103 @@ class DesignEditorActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun showTemplates() {
+        val templates = arrayOf(
+            "Post Instagram (cuadrado)",
+            "Story Instagram (vertical)",
+            "Miniatura YouTube",
+            "Flyer promocional",
+            "Felicitación",
+            "Cita motivacional"
+        )
+
+        AlertDialog.Builder(this)
+            .setTitle("Cargar plantilla")
+            .setItems(templates) { _, which ->
+                loadTemplate(which)
+            }
+            .show()
+    }
+
+    private fun loadTemplate(index: Int) {
+        canvasView.layers.clear()
+
+        canvasView.addLayer(DesignLayer(type = LayerType.BACKGROUND, color = "#FFFFFF"))
+
+        when (index) {
+            0 -> {
+                canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 50f, y = 50f, width = 980f, height = 980f, color = "#F5F5F5"))
+                canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Tu título aquí", x = 100f, y = 200f, textSize = 60f, color = "#333333", fontName = "Montserrat"))
+                canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Subtítulo o descripción", x = 100f, y = 300f, textSize = 35f, color = "#888888", fontName = "Open Sans"))
+            }
+            1 -> {
+                canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 0f, y = 0f, width = 1080f, height = 1920f, color = "#8B5CF6"))
+                canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 340f, y = 500f, width = 400f, height = 400f, color = "#FFFFFF"))
+                canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "¡Nuevo!", x = 300f, y = 1100f, textSize = 70f, color = "#FFFFFF", fontName = "Bebas Neue"))
+            }
+            2 -> {
+                canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 0f, y = 0f, width = 1280f, height = 720f, color = "#1A1A1A"))
+                canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 40f, y = 40f, width = 1200f, height = 640f, color = "#2A2A2A"))
+                canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "TÍTULO DEL VIDEO", x = 100f, y = 300f, textSize = 80f, color = "#FFFFFF", fontName = "Oswald"))
+                canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 1000f, y = 500f, width = 150f, height = 150f, color = "#FF0000"))
+            }
+            3 -> {
+                canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 50f, y = 50f, width = 980f, height = 1380f, color = "#FFF3E0"))
+                canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "OFERTA", x = 200f, y = 200f, textSize = 90f, color = "#E65100", fontName = "Bebas Neue"))
+                canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "50% DESC.", x = 250f, y = 350f, textSize = 60f, color = "#333333", fontName = "Poppins"))
+            }
+            4 -> {
+                canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 0f, y = 0f, width = 1080f, height = 1080f, color = "#E8F5E9"))
+                canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "¡Feliz cumpleaños!", x = 150f, y = 400f, textSize = 65f, color = "#2E7D32", fontName = "Playfair Display"))
+                canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 300f, y = 600f, width = 500f, height = 500f, color = "#FFD54F"))
+            }
+            5 -> {
+                canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 100f, y = 200f, width = 880f, height = 600f, color = "#F3E5F5"))
+                canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "\"La creatividad\nno tiene límites\"", x = 150f, y = 350f, textSize = 50f, color = "#4A148C", fontName = "Playfair Display"))
+            }
+        }
+
+        updateLayersList()
+        canvasView.invalidate()
+        Toast.makeText(this, "Plantilla cargada", Toast.LENGTH_SHORT).show()
+    }
+
     private fun saveProject() {
-        Toast.makeText(this, "Proyecto guardado (próximamente)", Toast.LENGTH_SHORT).show()
+        val jsonCapas = canvasView.toJson()
+        val projectName = "Diseño_${System.currentTimeMillis()}"
+
+        val project = com.creador360pro.data.model.DesignProject(
+            nombre = projectName,
+            fechaCreacion = System.currentTimeMillis(),
+            fechaModificacion = System.currentTimeMillis(),
+            jsonCapas = jsonCapas,
+            anchoLienzo = canvasView.width,
+            altoLienzo = canvasView.height
+        )
+
+        Thread {
+            val db = com.creador360pro.data.db.AppDatabase.getInstance(this)
+            db.designProjectDao().insertProject(project)
+            runOnUiThread {
+                Toast.makeText(this, "¡Proyecto guardado!", Toast.LENGTH_SHORT).show()
+            }
+        }.start()
     }
 
     private fun exportImage() {
-        val bitmap = canvasView.exportToBitmap()
-        val path = MediaStore.Images.Media.insertImage(
-            contentResolver,
-            bitmap,
-            "Creador360_${System.currentTimeMillis()}",
-            "Diseño creado con Creador360 PRO"
-        )
-        if (path != null) {
-            Toast.makeText(this, "¡Imagen guardada en la galería!", Toast.LENGTH_LONG).show()
-        } else {
-            Toast.makeText(this, "Error al guardar", Toast.LENGTH_SHORT).show()
-        }
-    }
+        val formats = arrayOf("JPG (comprimido)", "PNG (alta calidad)")
+        AlertDialog.Builder(this)
+            .setTitle("Exportar como")
+            .setItems(formats) { _, which ->
+                val bitmap = canvasView.exportToBitmap()
+                val format = if (which == 0) Bitmap.CompressFormat.JPEG else Bitmap.CompressFormat.PNG
+                val extension = if (which == 0) "jpg" else "png"
+                val quality = if (which == 0) 90 else 100
 
-    override fun onDestroy() {
-        super.onDestroy()
-        TFLiteHelper.close()
-    }
-}
+                val bytes = ByteArrayOutputStream()
+                bitmap.compress(format, quality, bytes)
+
+                val path = MediaStore.Images.Media.insertImage(
+                    contentResolver,
+                    bitmap,
+                   
