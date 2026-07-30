@@ -499,4 +499,7 @@ class DesignEditorActivity : AppCompatActivity() {
             .setItems(formats) { _, which ->
                 try {
                     val bitmap = canvasView.exportToBitmap()
-                    val format = if (which == 0) Bitmap.CompressFormat.JPEG else Bitmap.CompressF
+                    val extension: String
+                    val quality: Int
+
+                 
