@@ -33,5 +33,13 @@
             android:name=".ui.editor.VideoEditorActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.teleprompter.TeleprompterActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.audio.AudioEditorActivity"
+            android:exported="false" />
     </application>
 </manifest>
