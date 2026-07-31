@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.os.Bundle
-import android.os.Environment
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -61,7 +60,7 @@ class AudioEditorActivity : AppCompatActivity() {
                 Toast.makeText(this@AudioEditorActivity, "Grabando...", Toast.LENGTH_SHORT).show()
             } catch (e: IOException) {
                 e.printStackTrace()
-                Toast.makeText(this, "Error al grabar", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@AudioEditorActivity, "Error al grabar", Toast.LENGTH_SHORT).show()
             }
         }
     }
