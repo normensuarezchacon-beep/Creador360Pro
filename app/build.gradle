@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'com.google.devtools.ksp'
 }
 
 android {
@@ -22,14 +23,18 @@ android {
         }
     }
 
-    buildFeatures { viewBinding true }
+    buildFeatures {
+        viewBinding true
+    }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    kotlinOptions { jvmTarget = '17' }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
 
     aaptOptions {
         noCompress "tflite"
@@ -37,22 +42,41 @@ android {
 }
 
 dependencies {
+    // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.20"
+
+    // AndroidX Core
     implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.10.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+
+    // Room
     implementation "androidx.room:room-runtime:2.5.2"
     implementation "androidx.room:room-ktx:2.5.2"
+    ksp "androidx.room:room-compiler:2.5.2"
+
+    // ViewModel y LiveData
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.6.2"
+
+    // Navegación
     implementation "androidx.navigation:navigation-fragment-ktx:2.7.5"
     implementation "androidx.navigation:navigation-ui-ktx:2.7.5"
+
+    // WorkManager
     implementation "androidx.work:work-runtime-ktx:2.8.1"
+
+    // Koin
     implementation "io.insert-koin:koin-android:3.5.0"
+
+    // Coil
     implementation "io.coil-kt:coil:2.4.0"
-    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+
+    // TensorFlow Lite
     implementation 'org.tensorflow:tensorflow-lite:2.14.0'
+
+    // ExoPlayer
     implementation 'com.google.android.exoplayer:exoplayer-core:2.19.1'
     implementation 'com.google.android.exoplayer:exoplayer-ui:2.19.1'
 }
