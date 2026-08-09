@@ -2,7 +2,8 @@ package com.creador360pro.di
 
 import com.creador360pro.data.db.AppDatabase
 import com.creador360pro.data.dao.*
-import org.koin.android.ext.koin.androidContext
+import com.creador360pro.ui.ganancias.IncomeViewModel
+import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val appModule = module {
@@ -18,4 +19,7 @@ val appModule = module {
     single { get<AppDatabase>().collaborationDao() }
     single { get<AppDatabase>().designProjectDao() }
     single { get<AppDatabase>().videoProjectDao() }
+
+    // ViewModels
+    viewModel { IncomeViewModel(get()) }
 }
