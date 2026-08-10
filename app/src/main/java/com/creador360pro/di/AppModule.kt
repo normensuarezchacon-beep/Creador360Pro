@@ -22,6 +22,7 @@ val appModule = module {
     single { get<AppDatabase>().designProjectDao() }
     single { get<AppDatabase>().videoProjectDao() }
     single { get<AppDatabase>().scriptDao() }
+    single { get<AppDatabase>().audioDao() }
 
     // ViewModels
     viewModel { IncomeViewModel(get()) }
