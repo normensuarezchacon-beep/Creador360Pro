@@ -5,12 +5,19 @@ import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.os.Bundle
+import android.os.Environment
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.lifecycleScope
 import com.creador360pro.R
+import com.creador360pro.data.db.AppDatabase
+import com.creador360pro.data.model.AudioRecordItem
+import kotlinx.coroutines.launch
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.io.IOException
 
 class AudioEditorActivity : AppCompatActivity() {
@@ -19,6 +26,7 @@ class AudioEditorActivity : AppCompatActivity() {
     private var mediaPlayer: MediaPlayer? = null
     private var isRecording = false
     private var audioFile: File? = null
+    private var currentRecord: AudioRecordItem? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,6 +38,7 @@ class AudioEditorActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnStop).setOnClickListener { stopAudio() }
         findViewById<Button>(R.id.btnExport).setOnClickListener { exportAudio() }
         findViewById<Button>(R.id.btnEffects).setOnClickListener { showEffects() }
+        findViewById<Button>(R.id.btnList).setOnClickListener { showRecordList() }
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 300)
@@ -45,22 +54,26 @@ class AudioEditorActivity : AppCompatActivity() {
     }
 
     private fun startRecording() {
-        audioFile = File(externalCacheDir?.absolutePath, "grabacion_${System.currentTimeMillis()}.mp3")
+        val fileName = "audio_${System.currentTimeMillis()}.m4a"
+        audioFile = File(externalCacheDir?.absolutePath, fileName)
 
         mediaRecorder = MediaRecorder().apply {
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            setAudioSamplingRate(44100)
+            setAudioBitRate(128000)
             setOutputFile(audioFile?.absolutePath)
             try {
                 prepare()
                 start()
                 isRecording = true
                 findViewById<Button>(R.id.btnRecord).text = "⏹ Detener"
-                Toast.makeText(this@AudioEditorActivity, "Grabando...", Toast.LENGTH_SHORT).show()
+                findViewById<Button>(R.id.btnRecord).setBackgroundColor(resources.getColor(android.R.color.holo_red_dark, null))
+                Toast.makeText(this, "Grabando...", Toast.LENGTH_SHORT).show()
             } catch (e: IOException) {
                 e.printStackTrace()
-                Toast.makeText(this@AudioEditorActivity, "Error al grabar", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error al grabar: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -73,40 +86,80 @@ class AudioEditorActivity : AppCompatActivity() {
         mediaRecorder = null
         isRecording = false
         findViewById<Button>(R.id.btnRecord).text = "🎤 Grabar"
-        Toast.makeText(this, "Grabación guardada", Toast.LENGTH_SHORT).show()
+        findViewById<Button>(R.id.btnRecord).setBackgroundColor(resources.getColor(android.R.color.holo_red_light, null))
+
+        // Guardar en la base de datos
+        audioFile?.let { file ->
+            val nombre = "Grabación ${System.currentTimeMillis()}"
+            lifecycleScope.launch {
+                val db = AppDatabase.getInstance(this@AudioEditorActivity)
+                val record = AudioRecordItem(
+                    nombre = nombre,
+                    filePath = file.absolutePath,
+                    fechaCreacion = System.currentTimeMillis()
+                )
+                val id = db.audioDao().insertRecord(record)
+                currentRecord = record.copy(id = id)
+                Toast.makeText(this@AudioEditorActivity, "Grabación guardada", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun playAudio() {
-        if (audioFile == null || !audioFile!!.exists()) {
-            Toast.makeText(this, "Primero graba un audio", Toast.LENGTH_SHORT).show()
+        val file = audioFile ?: currentRecord?.let { File(it.filePath) }
+
+        if (file == null || !file.exists()) {
+            Toast.makeText(this, "Selecciona una grabación primero", Toast.LENGTH_SHORT).show()
             return
         }
+
+        mediaPlayer?.release()
         mediaPlayer = MediaPlayer().apply {
             try {
-                setDataSource(audioFile!!.absolutePath)
+                setDataSource(file.absolutePath)
                 prepare()
                 start()
                 Toast.makeText(this@AudioEditorActivity, "Reproduciendo...", Toast.LENGTH_SHORT).show()
+
+                setOnCompletionListener {
+                    Toast.makeText(this@AudioEditorActivity, "Reproducción terminada", Toast.LENGTH_SHORT).show()
+                }
             } catch (e: IOException) {
                 e.printStackTrace()
+                Toast.makeText(this@AudioEditorActivity, "Error al reproducir", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     private fun stopAudio() {
         mediaPlayer?.apply {
-            if (isPlaying) stop()
-            release()
+            if (isPlaying) {
+                stop()
+                reset()
+            }
         }
-        mediaPlayer = null
     }
 
     private fun exportAudio() {
-        if (audioFile == null || !audioFile!!.exists()) {
-            Toast.makeText(this, "Primero graba un audio", Toast.LENGTH_SHORT).show()
+        val file = audioFile ?: currentRecord?.let { File(it.filePath) }
+
+        if (file == null || !file.exists()) {
+            Toast.makeText(this, "Selecciona una grabación primero", Toast.LENGTH_SHORT).show()
             return
         }
-        Toast.makeText(this, "Audio guardado en: ${audioFile?.absolutePath}", Toast.LENGTH_LONG).show()
+
+        try {
+            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            val exportFile = File(downloadsDir, "Creador360_${file.name}")
+            FileInputStream(file).use { input ->
+                FileOutputStream(exportFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+            Toast.makeText(this, "Audio exportado a:\n${exportFile.absolutePath}", Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error al exportar: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun showEffects() {
@@ -118,6 +171,40 @@ class AudioEditorActivity : AppCompatActivity() {
                 Toast.makeText(this, "Audio ${effectNames[which]} (próximamente)", Toast.LENGTH_SHORT).show()
             }
             .show()
+    }
+
+    private fun showRecordList() {
+        lifecycleScope.launch {
+            val db = AppDatabase.getInstance(this@AudioEditorActivity)
+            db.audioDao().getAllRecords().collect { records ->
+                if (records.isEmpty()) {
+                    AlertDialog.Builder(this@AudioEditorActivity)
+                        .setTitle("Grabaciones guardadas")
+                        .setMessage("No hay grabaciones guardadas.")
+                        .setPositiveButton("OK", null)
+                        .show()
+                    return@collect
+                }
+
+                val nombres = records.map { it.nombre }.toTypedArray()
+                AlertDialog.Builder(this@AudioEditorActivity)
+                    .setTitle("Grabaciones guardadas (${records.size})")
+                    .setItems(nombres) { _, which ->
+                        currentRecord = records[which]
+                        audioFile = File(records[which].filePath)
+                        Toast.makeText(this@AudioEditorActivity, "Cargada: ${records[which].nombre}", Toast.LENGTH_SHORT).show()
+                    }
+                    .setPositiveButton("Eliminar todas") { _, _ ->
+                        lifecycleScope.launch {
+                            records.forEach { db.audioDao().deleteRecord(it) }
+                            Toast.makeText(this@AudioEditorActivity, "Todas las grabaciones eliminadas", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    .setNegativeButton("Cancelar", null)
+                    .show()
+                return@collect
+            }
+        }
     }
 
     override fun onDestroy() {
