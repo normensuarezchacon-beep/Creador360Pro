@@ -22,7 +22,6 @@ import com.creador360pro.util.TFLiteHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -45,7 +44,6 @@ class DesignEditorActivity : AppCompatActivity() {
         setupToolbar()
         setupCanvas()
 
-        // Cargar proyecto si viene del intent
         currentProjectId = intent.getLongExtra("project_id", -1).takeIf { it != -1L }
         if (currentProjectId != null) {
             loadProject(currentProjectId!!)
@@ -79,19 +77,12 @@ class DesignEditorActivity : AppCompatActivity() {
     private fun showAddMenu() {
         val options = arrayOf("Texto", "Imagen desde galería", "Forma (círculo)", "Forma (rectángulo)")
         AlertDialog.Builder(this).setTitle("Añadir elemento").setItems(options) { _, which ->
-            when (which) {
-                0 -> addTextLayer()
-                1 -> addImageLayer()
-                2 -> addShapeLayer("circle")
-                3 -> addShapeLayer("rectangle")
-            }
+            when (which) { 0 -> addTextLayer(); 1 -> addImageLayer(); 2 -> addShapeLayer("circle"); 3 -> addShapeLayer("rectangle") }
         }.show()
     }
 
     private fun addTextLayer() {
-        val input = EditText(this)
-        input.hint = "Escribe tu texto"
-        input.setTextColor(Color.BLACK)
+        val input = EditText(this); input.hint = "Escribe tu texto"; input.setTextColor(Color.BLACK)
         AlertDialog.Builder(this).setTitle("Añadir texto").setView(input)
             .setPositiveButton("Añadir") { _, _ ->
                 val text = input.text.toString()
@@ -99,8 +90,7 @@ class DesignEditorActivity : AppCompatActivity() {
                     canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = text, x = 100f, y = 200f, color = "#000000", textSize = 40f, fontName = "Montserrat"))
                     updateLayersList(); canvasView.invalidate()
                 }
-            }
-            .setNegativeButton("Cancelar", null).show()
+            }.setNegativeButton("Cancelar", null).show()
     }
 
     private fun addImageLayer() {
@@ -114,25 +104,11 @@ class DesignEditorActivity : AppCompatActivity() {
             if (uri != null) {
                 try {
                     val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
-
-                    // Guardar imagen en almacenamiento interno
                     val fileName = "img_${System.currentTimeMillis()}.png"
                     val file = File(filesDir, fileName)
-                    FileOutputStream(file).use { out ->
-                        bitmap.compress(Bitmap.CompressFormat.PNG, 90, out)
-                    }
+                    FileOutputStream(file).use { out -> bitmap.compress(Bitmap.CompressFormat.PNG, 90, out) }
                     imageFiles.add(file)
-
-                    canvasView.addLayer(
-                        DesignLayer(
-                            type = LayerType.IMAGE,
-                            bitmap = bitmap,
-                            x = 150f, y = 150f,
-                            width = bitmap.width.toFloat(),
-                            height = bitmap.height.toFloat(),
-                            imagePath = file.absolutePath
-                        )
-                    )
+                    canvasView.addLayer(DesignLayer(type = LayerType.IMAGE, bitmap = bitmap, x = 150f, y = 150f, width = bitmap.width.toFloat(), height = bitmap.height.toFloat(), imagePath = file.absolutePath))
                     updateLayersList(); canvasView.invalidate()
                 } catch (e: Exception) {
                     Toast.makeText(this, "Error al cargar imagen", Toast.LENGTH_SHORT).show()
@@ -160,8 +136,7 @@ class DesignEditorActivity : AppCompatActivity() {
                         LayerType.RECTANGLE -> "Rectángulo"
                         LayerType.BACKGROUND -> "Fondo"
                     }
-                    setTextColor(Color.WHITE); setPadding(16)
-                    gravity = Gravity.CENTER_VERTICAL
+                    setTextColor(Color.WHITE); setPadding(16); gravity = Gravity.CENTER_VERTICAL
                     layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 }
                 val editButton = Button(context).apply {
@@ -177,11 +152,7 @@ class DesignEditorActivity : AppCompatActivity() {
     }
 
     private fun showLayerProperties(layer: DesignLayer) {
-        when (layer.type) {
-            LayerType.TEXT -> showTextProperties(layer)
-            LayerType.IMAGE -> showImageProperties(layer)
-            else -> showShapeProperties(layer)
-        }
+        when (layer.type) { LayerType.TEXT -> showTextProperties(layer); LayerType.IMAGE -> showImageProperties(layer); else -> showShapeProperties(layer) }
     }
 
     private fun showTextProperties(layer: DesignLayer) {
@@ -233,10 +204,8 @@ class DesignEditorActivity : AppCompatActivity() {
                 .setPositiveButton("Entendido", null).show()
             return
         }
-        AlertDialog.Builder(this).setTitle("Eliminar fondo con IA")
-            .setMessage("Tu dispositivo:\n${TFLiteHelper.getDeviceInfo(this)}\n\n¿Continuar?")
-            .setPositiveButton("Sí") { _, _ -> executeBackgroundRemoval(layer) }
-            .setNegativeButton("Cancelar", null).show()
+        AlertDialog.Builder(this).setTitle("Eliminar fondo con IA").setMessage("Tu dispositivo:\n${TFLiteHelper.getDeviceInfo(this)}\n\n¿Continuar?")
+            .setPositiveButton("Sí") { _, _ -> executeBackgroundRemoval(layer) }.setNegativeButton("Cancelar", null).show()
     }
 
     private fun executeBackgroundRemoval(layer: DesignLayer) {
@@ -303,12 +272,7 @@ class DesignEditorActivity : AppCompatActivity() {
                 if (currentProjectId != null) {
                     val existing = db.designProjectDao().getProjectById(currentProjectId!!)
                     if (existing != null) {
-                        val updated = existing.copy(
-                            nombre = projectName,
-                            fechaModificacion = System.currentTimeMillis(),
-                            jsonCapas = jsonCapas
-                        )
-                        db.designProjectDao().updateProject(updated)
+                        db.designProjectDao().updateProject(existing.copy(nombre = projectName, fechaModificacion = System.currentTimeMillis(), jsonCapas = jsonCapas))
                     }
                 } else {
                     val id = db.designProjectDao().insertProject(project)
@@ -322,22 +286,10 @@ class DesignEditorActivity : AppCompatActivity() {
     private fun loadProject(projectId: Long) {
         lifecycleScope.launch {
             val db = AppDatabase.getInstance(this@DesignEditorActivity)
-            val project = withContext(Dispatchers.IO) {
-                db.designProjectDao().getProjectById(projectId)
-            }
+            val project = withContext(Dispatchers.IO) { db.designProjectDao().getProjectById(projectId) }
             project?.let {
                 canvasView.fromJson(it.jsonCapas)
-                // Restaurar imágenes desde las rutas guardadas
-                canvasView.getLayersList().forEach { layer ->
-                    layer.imagePath?.let { path ->
-                        val file = File(path)
-                        if (file.exists()) {
-                            layer.bitmap = android.graphics.BitmapFactory.decodeFile(path)
-                        }
-                    }
-                }
-                updateLayersList()
-                canvasView.invalidate()
+                updateLayersList(); canvasView.invalidate()
                 Toast.makeText(this@DesignEditorActivity, "Proyecto cargado", Toast.LENGTH_SHORT).show()
             }
         }
@@ -347,16 +299,10 @@ class DesignEditorActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val db = AppDatabase.getInstance(this@DesignEditorActivity)
             var projects = listOf<DesignProject>()
-            withContext(Dispatchers.IO) {
-                db.designProjectDao().getAllProjects().collect { projects = it; return@collect }
-            }
+            withContext(Dispatchers.IO) { db.designProjectDao().getAllProjects().collect { projects = it; return@collect } }
 
             if (projects.isEmpty()) {
-                AlertDialog.Builder(this@DesignEditorActivity)
-                    .setTitle("Proyectos guardados")
-                    .setMessage("No hay proyectos guardados.")
-                    .setPositiveButton("OK", null)
-                    .show()
+                AlertDialog.Builder(this@DesignEditorActivity).setTitle("Proyectos guardados").setMessage("No hay proyectos guardados.").setPositiveButton("OK", null).show()
                 return@launch
             }
 
@@ -365,24 +311,31 @@ class DesignEditorActivity : AppCompatActivity() {
 
             AlertDialog.Builder(this@DesignEditorActivity)
                 .setTitle("Cargar proyecto")
-                .setItems(nombres) { _, which ->
-                    currentProjectId = projects[which].id
-                    loadProject(projects[which].id)
-                }
+                .setItems(nombres) { _, which -> currentProjectId = projects[which].id; loadProject(projects[which].id) }
                 .setPositiveButton("Eliminar todos") { _, _ ->
                     lifecycleScope.launch {
-                        withContext(Dispatchers.IO) {
-                            projects.forEach { db.designProjectDao().deleteProject(it) }
-                        }
+                        withContext(Dispatchers.IO) { projects.forEach { db.designProjectDao().deleteProject(it) } }
                         Toast.makeText(this@DesignEditorActivity, "Proyectos eliminados", Toast.LENGTH_SHORT).show()
                     }
-                }
-                .setNegativeButton("Cancelar", null)
-                .show()
+                }.setNegativeButton("Cancelar", null).show()
         }
     }
 
     private fun exportImage() {
         AlertDialog.Builder(this).setTitle("Exportar como").setItems(arrayOf("JPG (comprimido)", "PNG (alta calidad)")) { _, which ->
             try {
-  
+                val bitmap = canvasView.exportToBitmap()
+                val extension = if (which == 0) "jpg" else "png"
+                val format = if (which == 0) Bitmap.CompressFormat.JPEG else Bitmap.CompressFormat.PNG
+                val path = MediaStore.Images.Media.insertImage(contentResolver, bitmap, "Creador360_${System.currentTimeMillis()}.$extension", "Creado con Creador360 PRO")
+                if (path != null && path.isNotEmpty()) Toast.makeText(this, "¡Guardado como $extension!", Toast.LENGTH_LONG).show()
+                else Toast.makeText(this, "Error al guardar", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) { Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show() }
+        }.show()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        TFLiteHelper.close()
+    }
+}
