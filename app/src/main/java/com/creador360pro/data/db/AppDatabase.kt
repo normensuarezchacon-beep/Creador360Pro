@@ -16,7 +16,8 @@ import com.creador360pro.data.model.*
         CollaborationHistory::class,
         DesignProject::class,
         VideoProject::class,
-        ScriptItem::class
+        ScriptItem::class,
+        AudioRecordItem::class
     ],
     version = 2,
     exportSchema = false
@@ -31,6 +32,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun designProjectDao(): DesignProjectDao
     abstract fun videoProjectDao(): VideoProjectDao
     abstract fun scriptDao(): ScriptDao
+    abstract fun audioDao(): AudioDao
 
     companion object {
         @Volatile
