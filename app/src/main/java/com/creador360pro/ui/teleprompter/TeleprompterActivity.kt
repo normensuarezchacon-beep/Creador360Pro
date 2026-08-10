@@ -134,27 +134,31 @@ class TeleprompterActivity : AppCompatActivity() {
     }
 
     private fun editCurrentScript() {
-        if (currentScript == null) {
+        val script = currentScript
+        if (script == null) {
             Toast.makeText(this, "Carga o crea un guión primero", Toast.LENGTH_SHORT).show()
             return
         }
 
         val inputContenido = EditText(this).apply {
-            setText(currentScript!!.contenido)
+            setText(script.contenido)
             minLines = 8
             gravity = Gravity.TOP
         }
 
         AlertDialog.Builder(this)
-            .setTitle("Editar: ${currentScript!!.titulo}")
+            .setTitle("Editar: ${script.titulo}")
             .setView(ScrollView(this).apply { addView(inputContenido) })
             .setPositiveButton("Guardar") { _, _ ->
                 lifecycleScope.launch {
                     val db = AppDatabase.getInstance(this@TeleprompterActivity)
-                    currentScript!!.contenido = inputContenido.text.toString()
-                    currentScript!!.fechaModificacion = System.currentTimeMillis()
-                    db.scriptDao().updateScript(currentScript!!)
-                    tvScript.text = currentScript!!.contenido
+                    val updatedScript = script.copy(
+                        contenido = inputContenido.text.toString(),
+                        fechaModificacion = System.currentTimeMillis()
+                    )
+                    db.scriptDao().updateScript(updatedScript)
+                    currentScript = updatedScript
+                    tvScript.text = updatedScript.contenido
                     Toast.makeText(this@TeleprompterActivity, "Guión actualizado", Toast.LENGTH_SHORT).show()
                 }
             }
