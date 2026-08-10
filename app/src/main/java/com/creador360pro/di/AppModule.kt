@@ -4,6 +4,7 @@ import com.creador360pro.data.db.AppDatabase
 import com.creador360pro.data.dao.*
 import com.creador360pro.ui.ganancias.IncomeViewModel
 import com.creador360pro.ui.ideas.IdeasViewModel
+import com.creador360pro.ui.planificar.CalendarViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
@@ -24,4 +25,5 @@ val appModule = module {
     // ViewModels
     viewModel { IncomeViewModel(get()) }
     viewModel { IdeasViewModel(get()) }
+    viewModel { CalendarViewModel(get()) }
 }
