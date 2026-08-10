@@ -1,11 +1,15 @@
 package com.creador360pro.ui.ajustes
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.creador360pro.R
@@ -13,6 +17,7 @@ import com.creador360pro.util.BackupManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -60,7 +65,10 @@ class AjustesFragment : Fragment() {
                             .setTitle("Backup creado")
                             .setMessage("Archivo guardado en:\n${result.absolutePath}\n\n" +
                                     "Tamaño: ${result.length() / 1024} KB")
-                            .setPositiveButton("OK", null)
+                            .setPositiveButton("Compartir") { _, _ ->
+                                compartirArchivo(result)
+                            }
+                            .setNegativeButton("OK", null)
                             .show()
                     } else {
                         Toast.makeText(requireContext(), "Error al crear el backup", Toast.LENGTH_SHORT).show()
@@ -133,14 +141,123 @@ class AjustesFragment : Fragment() {
     }
 
     private fun publicarContenido() {
-        val plataformas = arrayOf("Facebook", "YouTube", "Instagram", "WhatsApp")
+        val opciones = arrayOf(
+            "📸 Compartir imagen de galería",
+            "🎬 Compartir video de galería",
+            "📄 Compartir archivo de Descargas",
+            "🔗 Compartir texto"
+        )
+
         AlertDialog.Builder(requireContext())
             .setTitle("Compartir contenido")
-            .setMessage("Selecciona dónde quieres compartir. Se abrirá la aplicación correspondiente.")
-            .setItems(plataformas) { _, which ->
-                Toast.makeText(requireContext(), "Compartir con ${plataformas[which]} (próximamente)", Toast.LENGTH_SHORT).show()
+            .setItems(opciones) { _, which ->
+                when (which) {
+                    0 -> compartirDesdeGaleria("image/*", "Selecciona una imagen")
+                    1 -> compartirDesdeGaleria("video/*", "Selecciona un video")
+                    2 -> compartirDesdeDescargas()
+                    3 -> compartirTexto()
+                }
             }
             .show()
+    }
+
+    private fun compartirDesdeGaleria(tipo: String, titulo: String) {
+        try {
+            val intent = Intent(Intent.ACTION_PICK).apply {
+                type = tipo
+                putExtra(Intent.EXTRA_TITLE, titulo)
+            }
+            startActivityForResult(Intent.createChooser(intent, titulo), 500)
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "No se pudo abrir la galería", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun compartirDesdeDescargas() {
+        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val files = downloadsDir.listFiles { file ->
+            file.isFile && (file.name.endsWith(".mp4") || file.name.endsWith(".jpg") ||
+                    file.name.endsWith(".png") || file.name.endsWith(".mp3") ||
+                    file.name.endsWith(".m4a") || file.name.endsWith(".c360backup") ||
+                    file.name.endsWith(".csv"))
+        }?.sortedByDescending { it.lastModified() }
+
+        if (files.isNullOrEmpty()) {
+            Toast.makeText(requireContext(), "No hay archivos para compartir en Descargas", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val sdf = SimpleDateFormat("dd/MM HH:mm", Locale.getDefault())
+        val nombres = files.map { "${it.name} (${sdf.format(Date(it.lastModified()))})" }.toTypedArray()
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("Compartir archivo")
+            .setItems(nombres) { _, which ->
+                compartirArchivo(files[which])
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun compartirArchivo(file: File) {
+        try {
+            val uri = FileProvider.getUriForFile(
+                requireContext(),
+                "${requireContext().packageName}.fileprovider",
+                file
+            )
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = when {
+                    file.name.endsWith(".mp4") -> "video/mp4"
+                    file.name.endsWith(".jpg") || file.name.endsWith(".png") -> "image/*"
+                    file.name.endsWith(".mp3") || file.name.endsWith(".m4a") -> "audio/*"
+                    file.name.endsWith(".csv") -> "text/csv"
+                    else -> "*/*"
+                }
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(intent, "Compartir con..."))
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Error al compartir: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun compartirTexto() {
+        val input = EditText(requireContext()).apply {
+            hint = "Escribe el texto a compartir"
+            minLines = 3
+        }
+        AlertDialog.Builder(requireContext())
+            .setTitle("Compartir texto")
+            .setView(input)
+            .setPositiveButton("Compartir") { _, _ ->
+                val texto = input.text.toString()
+                if (texto.isNotEmpty()) {
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, texto)
+                    }
+                    startActivity(Intent.createChooser(intent, "Compartir texto"))
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 500 && resultCode == android.app.Activity.RESULT_OK && data != null) {
+            val uri = data.data
+            if (uri != null) {
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = requireContext().contentResolver.getType(uri)
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(Intent.createChooser(intent, "Compartir con..."))
+            }
+        }
     }
 
     private fun acercaDe() {
@@ -156,7 +273,8 @@ class AjustesFragment : Fragment() {
                     "• Banco de ideas\n" +
                     "• Calendario editorial\n" +
                     "• Gestor de ganancias\n" +
-                    "• Backup y restauración\n\n" +
+                    "• Backup y restauración\n" +
+                    "• Compartir contenido\n\n" +
                     "Creado por invexXo TEAM\n" +
                     "© 2026 Todos los derechos reservados")
             .setPositiveButton("OK", null)
