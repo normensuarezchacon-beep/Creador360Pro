@@ -12,7 +12,8 @@ data class DesignLayer(
     var height: Float = 100f,
     var color: String = "#000000",
     var textSize: Float = 40f,
-    var fontName: String? = null
+    var fontName: String? = null,
+    var imagePath: String? = null
 )
 
 enum class LayerType {
