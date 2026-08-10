@@ -21,6 +21,7 @@ val appModule = module {
     single { get<AppDatabase>().collaborationDao() }
     single { get<AppDatabase>().designProjectDao() }
     single { get<AppDatabase>().videoProjectDao() }
+    single { get<AppDatabase>().scriptDao() }
 
     // ViewModels
     viewModel { IncomeViewModel(get()) }
