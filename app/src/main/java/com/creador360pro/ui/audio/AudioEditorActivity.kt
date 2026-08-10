@@ -57,24 +57,25 @@ class AudioEditorActivity : AppCompatActivity() {
         val fileName = "audio_${System.currentTimeMillis()}.m4a"
         audioFile = File(externalCacheDir?.absolutePath, fileName)
 
-        mediaRecorder = MediaRecorder().apply {
-            setAudioSource(MediaRecorder.AudioSource.MIC)
-            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-            setAudioSamplingRate(44100)
-            setAudioBitRate(128000)
-            setOutputFile(audioFile?.absolutePath)
-            try {
+        mediaRecorder = MediaRecorder()
+        try {
+            mediaRecorder?.apply {
+                setAudioSource(MediaRecorder.AudioSource.MIC)
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setAudioSamplingRate(44100)
+                setAudioEncodingBitRate(128000)
+                setOutputFile(audioFile?.absolutePath)
                 prepare()
                 start()
-                isRecording = true
-                findViewById<Button>(R.id.btnRecord).text = "⏹ Detener"
-                findViewById<Button>(R.id.btnRecord).setBackgroundColor(resources.getColor(android.R.color.holo_red_dark, null))
-                Toast.makeText(this, "Grabando...", Toast.LENGTH_SHORT).show()
-            } catch (e: IOException) {
-                e.printStackTrace()
-                Toast.makeText(this, "Error al grabar: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+            isRecording = true
+            findViewById<Button>(R.id.btnRecord).text = "⏹ Detener"
+            findViewById<Button>(R.id.btnRecord).setBackgroundColor(resources.getColor(android.R.color.holo_red_dark, null))
+            Toast.makeText(this@AudioEditorActivity, "Grabando...", Toast.LENGTH_SHORT).show()
+        } catch (e: IOException) {
+            e.printStackTrace()
+            Toast.makeText(this@AudioEditorActivity, "Error al grabar: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -88,7 +89,6 @@ class AudioEditorActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnRecord).text = "🎤 Grabar"
         findViewById<Button>(R.id.btnRecord).setBackgroundColor(resources.getColor(android.R.color.holo_red_light, null))
 
-        // Guardar en la base de datos
         audioFile?.let { file ->
             val nombre = "Grabación ${System.currentTimeMillis()}"
             lifecycleScope.launch {
