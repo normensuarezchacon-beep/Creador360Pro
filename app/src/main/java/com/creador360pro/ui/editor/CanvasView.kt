@@ -103,6 +103,7 @@ class CanvasView @JvmOverloads constructor(
             json.put("textSize", layer.textSize.toDouble())
             layer.text?.let { json.put("text", it) }
             layer.fontName?.let { json.put("fontName", it) }
+            layer.imagePath?.let { json.put("imagePath", it) }
             jsonArray.put(json)
         }
         return jsonArray.toString()
@@ -123,8 +124,15 @@ class CanvasView @JvmOverloads constructor(
                 color = json.optString("color", "#000000"),
                 textSize = json.optDouble("textSize", 40.0).toFloat(),
                 text = json.optString("text", null),
-                fontName = json.optString("fontName", null)
+                fontName = json.optString("fontName", null),
+                imagePath = json.optString("imagePath", null)
             )
+            layer.imagePath?.let { path ->
+                val file = java.io.File(path)
+                if (file.exists()) {
+                    layer.bitmap = BitmapFactory.decodeFile(path)
+                }
+            }
             layersList.add(layer)
         }
         selectedLayerIndex = -1
