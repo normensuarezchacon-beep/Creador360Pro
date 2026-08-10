@@ -30,6 +30,15 @@
             android:textColor="#FFFFFF"
             android:textSize="14sp"
             android:gravity="center" />
+
+        <Button
+            android:id="@+id/btnList"
+            android:layout_width="40dp"
+            android:layout_height="32dp"
+            android:text="📋"
+            android:textSize="14sp"
+            android:backgroundTint="#8B5CF6"
+            android:minWidth="0dp" />
     </LinearLayout>
 
     <LinearLayout
@@ -57,7 +66,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Exporta en MP3 de alta calidad"
+            android:text="Formato M4A (AAC) • Alta calidad"
             android:textColor="#888888"
             android:textSize="13sp" />
     </LinearLayout>
@@ -123,7 +132,7 @@
             android:layout_width="0dp"
             android:layout_height="36dp"
             android:layout_weight="1"
-            android:text="Exportar MP3"
+            android:text="Exportar archivo"
             android:textSize="12sp"
             android:backgroundTint="#8B5CF6" />
     </LinearLayout>
