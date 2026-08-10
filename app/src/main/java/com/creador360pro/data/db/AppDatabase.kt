@@ -15,9 +15,10 @@ import com.creador360pro.data.model.*
         Contact::class,
         CollaborationHistory::class,
         DesignProject::class,
-        VideoProject::class
+        VideoProject::class,
+        ScriptItem::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -29,6 +30,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun collaborationDao(): CollaborationDao
     abstract fun designProjectDao(): DesignProjectDao
     abstract fun videoProjectDao(): VideoProjectDao
+    abstract fun scriptDao(): ScriptDao
 
     companion object {
         @Volatile
