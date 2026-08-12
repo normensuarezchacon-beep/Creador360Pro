@@ -56,7 +56,10 @@ class DesignEditorActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnAdd).setOnClickListener { showAddMenu() }
         findViewById<Button>(R.id.btnLayers).setOnClickListener {
             if (llCapas.visibility == View.VISIBLE) llCapas.visibility = View.GONE
-            else { llCapas.visibility = View.VISIBLE; updateLayersList() }
+            else {
+                llCapas.visibility = View.VISIBLE
+                updateLayersList()
+            }
         }
         findViewById<Button>(R.id.btnSave).setOnClickListener { saveProject() }
         findViewById<Button>(R.id.btnExport).setOnClickListener { exportImage() }
@@ -64,8 +67,11 @@ class DesignEditorActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnRedo).setOnClickListener { canvasView.redo(); updateLayersList() }
         findViewById<Button>(R.id.btnProperties).setOnClickListener {
             val index = canvasView.getSelectedLayerIndex()
-            if (index >= 0 && index < canvasView.getLayersList().size) showLayerProperties(canvasView.getLayersList()[index])
-            else Toast.makeText(this, "Selecciona una capa primero", Toast.LENGTH_SHORT).show()
+            if (index >= 0 && index < canvasView.getLayersList().size) {
+                showLayerProperties(canvasView.getLayersList()[index])
+            } else {
+                Toast.makeText(this, "Selecciona una capa primero", Toast.LENGTH_SHORT).show()
+            }
         }
         findViewById<Button>(R.id.btnTemplates).setOnClickListener { showTemplates() }
         findViewById<Button>(R.id.btnLoadProject).setOnClickListener { showProjectList() }
@@ -78,26 +84,41 @@ class DesignEditorActivity : AppCompatActivity() {
 
     private fun showAddMenu() {
         val options = arrayOf("Texto", "Imagen desde galería", "Forma (círculo)", "Forma (rectángulo)")
-        AlertDialog.Builder(this).setTitle("Añadir elemento").setItems(options) { _, which ->
-            when (which) {
-                0 -> addTextLayer()
-                1 -> addImageLayer()
-                2 -> addShapeLayer("circle")
-                3 -> addShapeLayer("rectangle")
+        AlertDialog.Builder(this)
+            .setTitle("Añadir elemento")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> addTextLayer()
+                    1 -> addImageLayer()
+                    2 -> addShapeLayer("circle")
+                    3 -> addShapeLayer("rectangle")
+                }
             }
-        }.show()
+            .show()
     }
 
     private fun addTextLayer() {
         val input = EditText(this)
         input.hint = "Escribe tu texto"
         input.setTextColor(Color.BLACK)
-        AlertDialog.Builder(this).setTitle("Añadir texto").setView(input)
+        AlertDialog.Builder(this)
+            .setTitle("Añadir texto")
+            .setView(input)
             .setPositiveButton("Añadir") { _, _ ->
                 val text = input.text.toString()
                 if (text.isNotEmpty()) {
                     canvasView.saveState()
-                    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = text, x = 100f, y = 200f, color = "#000000", textSize = 40f, fontName = "Montserrat"))
+                    canvasView.addLayer(
+                        DesignLayer(
+                            type = LayerType.TEXT,
+                            text = text,
+                            x = 100f,
+                            y = 200f,
+                            color = "#000000",
+                            textSize = 40f,
+                            fontName = "Montserrat"
+                        )
+                    )
                     updateLayersList()
                     canvasView.invalidate()
                 }
@@ -122,7 +143,17 @@ class DesignEditorActivity : AppCompatActivity() {
                     FileOutputStream(file).use { out -> bitmap.compress(Bitmap.CompressFormat.PNG, 85, out) }
                     imageFiles.add(file)
                     canvasView.saveState()
-                    canvasView.addLayer(DesignLayer(type = LayerType.IMAGE, bitmap = bitmap, x = 150f, y = 150f, width = bitmap.width.toFloat(), height = bitmap.height.toFloat(), imagePath = file.absolutePath))
+                    canvasView.addLayer(
+                        DesignLayer(
+                            type = LayerType.IMAGE,
+                            bitmap = bitmap,
+                            x = 150f,
+                            y = 150f,
+                            width = bitmap.width.toFloat(),
+                            height = bitmap.height.toFloat(),
+                            imagePath = file.absolutePath
+                        )
+                    )
                     updateLayersList()
                     canvasView.invalidate()
                 } catch (e: Exception) {
@@ -146,7 +177,16 @@ class DesignEditorActivity : AppCompatActivity() {
 
     private fun addShapeLayer(shape: String) {
         canvasView.saveState()
-        canvasView.addLayer(DesignLayer(type = if (shape == "circle") LayerType.CIRCLE else LayerType.RECTANGLE, x = 200f, y = 200f, width = 150f, height = if (shape == "circle") 150f else 100f, color = "#8B5CF6"))
+        canvasView.addLayer(
+            DesignLayer(
+                type = if (shape == "circle") LayerType.CIRCLE else LayerType.RECTANGLE,
+                x = 200f,
+                y = 200f,
+                width = 150f,
+                height = if (shape == "circle") 150f else 100f,
+                color = "#8B5CF6"
+            )
+        )
         updateLayersList()
         canvasView.invalidate()
     }
@@ -174,10 +214,22 @@ class DesignEditorActivity : AppCompatActivity() {
                 val editButton = Button(context).apply {
                     text = "✏️"
                     setBackgroundColor(Color.TRANSPARENT)
-                    setOnClickListener { canvasView.selectLayer(index); selectedLayerIndex = index; showLayerProperties(layer) }
+                    setOnClickListener {
+                        canvasView.selectLayer(index)
+                        selectedLayerIndex = index
+                        showLayerProperties(layer)
+                    }
                 }
-                setOnClickListener { canvasView.selectLayer(index); selectedLayerIndex = index; updateLayersList() }
-                if (index == canvasView.getSelectedLayerIndex()) setBackgroundColor(Color.parseColor("#8B5CF6")) else setBackgroundColor(Color.DKGRAY)
+                setOnClickListener {
+                    canvasView.selectLayer(index)
+                    selectedLayerIndex = index
+                    updateLayersList()
+                }
+                if (index == canvasView.getSelectedLayerIndex()) {
+                    setBackgroundColor(Color.parseColor("#8B5CF6"))
+                } else {
+                    setBackgroundColor(Color.DKGRAY)
+                }
                 addView(textView)
                 addView(editButton)
             }
@@ -194,91 +246,123 @@ class DesignEditorActivity : AppCompatActivity() {
     }
 
     private fun showTextProperties(layer: DesignLayer) {
-        AlertDialog.Builder(this).setTitle("Propiedades de texto").setItems(arrayOf("Cambiar texto", "Cambiar fuente", "Cambiar color", "Cambiar tamaño")) { _, which ->
-            when (which) {
-                0 -> changeText(layer)
-                1 -> changeFont(layer)
-                2 -> changeColor(layer)
-                3 -> changeSize(layer)
+        AlertDialog.Builder(this)
+            .setTitle("Propiedades de texto")
+            .setItems(arrayOf("Cambiar texto", "Cambiar fuente", "Cambiar color", "Cambiar tamaño")) { _, which ->
+                when (which) {
+                    0 -> changeText(layer)
+                    1 -> changeFont(layer)
+                    2 -> changeColor(layer)
+                    3 -> changeSize(layer)
+                }
             }
-        }.show()
+            .show()
     }
 
     private fun changeText(layer: DesignLayer) {
         val input = EditText(this)
         input.setText(layer.text)
-        AlertDialog.Builder(this).setTitle("Editar texto").setView(input).setPositiveButton("OK") { _, _ ->
-            canvasView.saveState()
-            layer.text = input.text.toString()
-            canvasView.invalidate()
-        }.setNegativeButton("Cancelar", null).show()
+        AlertDialog.Builder(this)
+            .setTitle("Editar texto")
+            .setView(input)
+            .setPositiveButton("OK") { _, _ ->
+                canvasView.saveState()
+                layer.text = input.text.toString()
+                canvasView.invalidate()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun changeFont(layer: DesignLayer) {
         val fonts = FontManager.getAvailableFonts().toTypedArray()
-        AlertDialog.Builder(this).setTitle("Elegir fuente").setItems(fonts) { _, which ->
-            canvasView.saveState()
-            layer.fontName = fonts[which]
-            canvasView.invalidate()
-        }.show()
+        AlertDialog.Builder(this)
+            .setTitle("Elegir fuente")
+            .setItems(fonts) { _, which ->
+                canvasView.saveState()
+                layer.fontName = fonts[which]
+                canvasView.invalidate()
+            }
+            .show()
     }
 
     private fun changeColor(layer: DesignLayer) {
         val hexCodes = arrayOf("#000000", "#FFFFFF", "#FF0000", "#0000FF", "#00FF00", "#FF9800", "#8B5CF6")
-        AlertDialog.Builder(this).setTitle("Color de texto").setItems(arrayOf("Negro", "Blanco", "Rojo", "Azul", "Verde", "Naranja", "Púrpura")) { _, which ->
-            canvasView.saveState()
-            layer.color = hexCodes[which]
-            canvasView.invalidate()
-        }.show()
+        AlertDialog.Builder(this)
+            .setTitle("Color de texto")
+            .setItems(arrayOf("Negro", "Blanco", "Rojo", "Azul", "Verde", "Naranja", "Púrpura")) { _, which ->
+                canvasView.saveState()
+                layer.color = hexCodes[which]
+                canvasView.invalidate()
+            }
+            .show()
     }
 
     private fun changeSize(layer: DesignLayer) {
         val sizeValues = floatArrayOf(20f, 40f, 60f, 80f)
-        AlertDialog.Builder(this).setTitle("Tamaño de texto").setItems(arrayOf("Pequeño (20)", "Mediano (40)", "Grande (60)", "Muy grande (80)")) { _, which ->
-            canvasView.saveState()
-            layer.textSize = sizeValues[which]
-            canvasView.invalidate()
-        }.show()
+        AlertDialog.Builder(this)
+            .setTitle("Tamaño de texto")
+            .setItems(arrayOf("Pequeño (20)", "Mediano (40)", "Grande (60)", "Muy grande (80)")) { _, which ->
+                canvasView.saveState()
+                layer.textSize = sizeValues[which]
+                canvasView.invalidate()
+            }
+            .show()
     }
 
     private fun showImageProperties(layer: DesignLayer) {
-        AlertDialog.Builder(this).setTitle("Propiedades de imagen").setItems(arrayOf("Aplicar filtro", "Eliminar fondo (IA)", "Ajustar brillo/contraste")) { _, which ->
-            when (which) {
-                0 -> applyFilter(layer)
-                1 -> removeBackground(layer)
-                2 -> adjustBrightness(layer)
+        AlertDialog.Builder(this)
+            .setTitle("Propiedades de imagen")
+            .setItems(arrayOf("Aplicar filtro", "Eliminar fondo (IA)", "Ajustar brillo/contraste")) { _, which ->
+                when (which) {
+                    0 -> applyFilter(layer)
+                    1 -> removeBackground(layer)
+                    2 -> adjustBrightness(layer)
+                }
             }
-        }.show()
+            .show()
     }
 
     private fun applyFilter(layer: DesignLayer) {
         val filters = FilterType.values().map { it.name }.toTypedArray()
-        AlertDialog.Builder(this).setTitle("Aplicar filtro").setItems(filters) { _, which ->
-            layer.bitmap?.let { bmp ->
-                canvasView.saveState()
-                val filtered = ImageFilterUtil.applyFilter(bmp, FilterType.values()[which])
-                layer.bitmap = filtered
-                layer.width = filtered.width.toFloat()
-                layer.height = filtered.height.toFloat()
-                canvasView.invalidate()
+        AlertDialog.Builder(this)
+            .setTitle("Aplicar filtro")
+            .setItems(filters) { _, which ->
+                layer.bitmap?.let { bmp ->
+                    canvasView.saveState()
+                    val filtered = ImageFilterUtil.applyFilter(bmp, FilterType.values()[which])
+                    layer.bitmap = filtered
+                    layer.width = filtered.width.toFloat()
+                    layer.height = filtered.height.toFloat()
+                    canvasView.invalidate()
+                }
             }
-        }.show()
+            .show()
     }
 
     private fun removeBackground(layer: DesignLayer) {
         if (!TFLiteHelper.isAvailable()) {
-            AlertDialog.Builder(this).setTitle("Función no disponible")
+            AlertDialog.Builder(this)
+                .setTitle("Función no disponible")
                 .setMessage("No se encontró ningún modelo de IA.\n\nAsegúrate de tener:\n- mediapipe_selfie_segmentation.tflite\nen app/src/main/assets/models/")
-                .setPositiveButton("Entendido", null).show()
+                .setPositiveButton("Entendido", null)
+                .show()
             return
         }
-        AlertDialog.Builder(this).setTitle("Eliminar fondo con IA").setMessage("Tu dispositivo:\n${TFLiteHelper.getDeviceInfo(this)}\n\n¿Continuar?")
+        AlertDialog.Builder(this)
+            .setTitle("Eliminar fondo con IA")
+            .setMessage("Tu dispositivo:\n${TFLiteHelper.getDeviceInfo(this)}\n\n¿Continuar?")
             .setPositiveButton("Sí") { _, _ -> executeBackgroundRemoval(layer) }
-            .setNegativeButton("Cancelar", null).show()
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun executeBackgroundRemoval(layer: DesignLayer) {
-        val progressDialog = AlertDialog.Builder(this).setTitle("Procesando...").setMessage("Eliminando fondo con IA...").setCancelable(false).create()
+        val progressDialog = AlertDialog.Builder(this)
+            .setTitle("Procesando...")
+            .setMessage("Eliminando fondo con IA...")
+            .setCancelable(false)
+            .create()
         progressDialog.show()
         Thread {
             layer.bitmap?.let { bmp ->
@@ -301,21 +385,35 @@ class DesignEditorActivity : AppCompatActivity() {
     }
 
     private fun adjustBrightness(layer: DesignLayer) {
-        AlertDialog.Builder(this).setTitle("Ajustar brillo").setMessage("Próximamente").setPositiveButton("OK", null).show()
+        AlertDialog.Builder(this)
+            .setTitle("Ajustar brillo")
+            .setMessage("Próximamente")
+            .setPositiveButton("OK", null)
+            .show()
     }
 
     private fun showShapeProperties(layer: DesignLayer) {
         val hexCodes = arrayOf("#8B5CF6", "#FF0000", "#0000FF", "#00FF00", "#FF9800", "#000000")
-        AlertDialog.Builder(this).setTitle("Color de forma").setItems(arrayOf("Púrpura", "Rojo", "Azul", "Verde", "Naranja", "Negro")) { _, which ->
-            canvasView.saveState()
-            layer.color = hexCodes[which]
-            canvasView.invalidate()
-        }.show()
+        AlertDialog.Builder(this)
+            .setTitle("Color de forma")
+            .setItems(arrayOf("Púrpura", "Rojo", "Azul", "Verde", "Naranja", "Negro")) { _, which ->
+                canvasView.saveState()
+                layer.color = hexCodes[which]
+                canvasView.invalidate()
+            }
+            .show()
     }
 
     private fun showTemplates() {
-        val templates = arrayOf("Post Instagram", "Story Instagram", "Miniatura YouTube", "Flyer promocional", "Felicitación", "Cita motivacional", "Logo circular", "Banner horizontal", "Menú restaurante", "Invitación evento", "Oferta flash", "Tarjeta presentación")
-        AlertDialog.Builder(this).setTitle("Cargar plantilla").setItems(templates) { _, which -> loadTemplate(which) }.show()
+        val templates = arrayOf(
+            "Post Instagram", "Story Instagram", "Miniatura YouTube", "Flyer promocional",
+            "Felicitación", "Cita motivacional", "Logo circular", "Banner horizontal",
+            "Menú restaurante", "Invitación evento", "Oferta flash", "Tarjeta presentación"
+        )
+        AlertDialog.Builder(this)
+            .setTitle("Cargar plantilla")
+            .setItems(templates) { _, which -> loadTemplate(which) }
+            .show()
     }
 
     private fun loadTemplate(index: Int) {
@@ -364,44 +462,11 @@ class DesignEditorActivity : AppCompatActivity() {
                 if (currentProjectId != null) {
                     val existing = db.designProjectDao().getProjectById(currentProjectId!!)
                     if (existing != null) {
-                        db.designProjectDao().updateProject(existing.copy(nombre = projectName, fechaModificacion = System.currentTimeMillis(), jsonCapas = jsonCapas))
-                    }
-                } else {
-                    val id = db.designProjectDao().insertProject(project)
-                    currentProjectId = id
-                }
-            }
-            Toast.makeText(this@DesignEditorActivity, "¡Proyecto guardado!", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun loadProject(projectId: Long) {
-        lifecycleScope.launch {
-            val db = AppDatabase.getInstance(this@DesignEditorActivity)
-            val project = withContext(Dispatchers.IO) { db.designProjectDao().getProjectById(projectId) }
-            project?.let {
-                canvasView.fromJson(it.jsonCapas)
-                updateLayersList()
-                canvasView.invalidate()
-                Toast.makeText(this@DesignEditorActivity, "Proyecto cargado", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private fun showProjectList() {
-        lifecycleScope.launch {
-            val db = AppDatabase.getInstance(this@DesignEditorActivity)
-            var projects = listOf<DesignProject>()
-            withContext(Dispatchers.IO) { db.designProjectDao().getAllProjects().collect { projects = it; return@collect } }
-            if (projects.isEmpty()) {
-                AlertDialog.Builder(this@DesignEditorActivity).setTitle("Proyectos guardados").setMessage("No hay proyectos guardados.").setPositiveButton("OK", null).show()
-                return@launch
-            }
-            val sdf = SimpleDateFormat("dd/MM/yy HH:mm", Locale.getDefault())
-            val nombres = projects.map { "${it.nombre} (${sdf.format(Date(it.fechaModificacion))})" }.toTypedArray()
-            AlertDialog.Builder(this@DesignEditorActivity)
-                .setTitle("Cargar proyecto")
-                .setItems(nombres) { _, which -> currentProjectId = projects[which].id; loadProject(projects[which].id) }
-                .setPositiveButton("Eliminar todos") { _, _ ->
-                    lifecycleScope.launch {
-                        withContext(Dispatchers.IO) { projects.forEach { db.designProjectDao().
+                        db.designProjectDao().updateProject(
+                            existing.copy(
+                                nombre = projectName,
+                                fechaModificacion = System.currentTimeMillis(),
+                                jsonCapas = jsonCapas
+                            )
+                        )
+        
