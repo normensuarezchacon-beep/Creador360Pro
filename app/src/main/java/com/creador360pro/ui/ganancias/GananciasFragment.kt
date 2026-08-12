@@ -11,6 +11,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.creador360pro.R
+import com.creador360pro.data.model.IncomeRecord
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
@@ -34,12 +35,17 @@ class GananciasFragment : Fragment() {
         tvResumen = view.findViewById(R.id.tvResumen)
         llIngresos = view.findViewById(R.id.llIngresos)
 
+        // Cargar tasas guardadas
+        val prefs = requireContext().getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+        tasaUSD = prefs.getFloat("tasaUSD", 270.0f).toDouble()
+        tasaMLC = prefs.getFloat("tasaMLC", 260.0f).toDouble()
+        tasaEUR = prefs.getFloat("tasaEUR", 300.0f).toDouble()
+
         view.findViewById<Button>(R.id.btnAgregarIngreso).setOnClickListener { agregarIngreso() }
         view.findViewById<Button>(R.id.btnTasaCambio).setOnClickListener { configurarTasa() }
         view.findViewById<Button>(R.id.btnVerGrafico).setOnClickListener { verGrafico() }
         view.findViewById<Button>(R.id.btnExportarCSV).setOnClickListener { exportarCSV() }
 
-        // Observar cambios en la base de datos
         lifecycleScope.launch {
             viewModel.allIncomes.collect { ingresos ->
                 actualizarUI(ingresos)
@@ -49,8 +55,8 @@ class GananciasFragment : Fragment() {
         return view
     }
 
-    private fun actualizarUI(ingresos: List<com.creador360pro.data.model.IncomeRecord>) {
-        val totalCUP = calcularTotalCUP(ingresos)
+    private fun actualizarUI(ingresos: List<IncomeRecord>) {
+        val totalCUP = ingresos.sumOf { convertirACUP(it.monto, it.moneda) }
         val countUSD = ingresos.count { it.moneda == "USD" }
         val countMLC = ingresos.count { it.moneda == "MLC" }
         val countCUP = ingresos.count { it.moneda == "CUP" }
@@ -68,19 +74,18 @@ class GananciasFragment : Fragment() {
                 text = "No hay ingresos registrados"
                 setTextColor(Color.parseColor("#AAAAAA"))
                 textSize = 14f
-                setPadding(16, 16, 16, 16)
+                setPadding(16, 32, 16, 32)
                 gravity = android.view.Gravity.CENTER
             }
             llIngresos.addView(tv)
         } else {
             val sdf = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
             ingresos.takeLast(20).reversed().forEach { income ->
-                val fechaStr = sdf.format(Date(income.fecha))
                 val tv = TextView(requireContext()).apply {
-                    text = "$fechaStr - ${income.fuente}: ${income.monto} ${income.moneda}"
+                    text = "${sdf.format(Date(income.fecha))} - ${income.fuente}: ${income.monto} ${income.moneda}"
                     setTextColor(Color.parseColor("#333333"))
                     textSize = 13f
-                    setPadding(16, 8, 16, 8)
+                    setPadding(16, 12, 16, 12)
                     setBackgroundColor(Color.WHITE)
 
                     setOnLongClickListener {
@@ -169,7 +174,15 @@ class GananciasFragment : Fragment() {
                 tasaUSD = inputUSD.text.toString().toDoubleOrNull() ?: tasaUSD
                 tasaMLC = inputMLC.text.toString().toDoubleOrNull() ?: tasaMLC
                 tasaEUR = inputEUR.text.toString().toDoubleOrNull() ?: tasaEUR
-                Toast.makeText(requireContext(), "Tasas actualizadas", Toast.LENGTH_SHORT).show()
+
+                val prefs = requireContext().getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+                prefs.edit()
+                    .putFloat("tasaUSD", tasaUSD.toFloat())
+                    .putFloat("tasaMLC", tasaMLC.toFloat())
+                    .putFloat("tasaEUR", tasaEUR.toFloat())
+                    .apply()
+
+                Toast.makeText(requireContext(), "Tasas guardadas", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancelar", null)
             .show()
@@ -177,12 +190,7 @@ class GananciasFragment : Fragment() {
 
     private fun verGrafico() {
         lifecycleScope.launch {
-            val ingresos = viewModel.allIncomes.let { flow ->
-                var list = listOf<com.creador360pro.data.model.IncomeRecord>()
-                flow.collect { list = it; return@collect }
-            }
-            // Recolectar una vez
-            var lista = listOf<com.creador360pro.data.model.IncomeRecord>()
+            var lista = listOf<IncomeRecord>()
             viewModel.allIncomes.collect { lista = it; return@collect }
 
             if (lista.isEmpty()) {
@@ -190,17 +198,17 @@ class GananciasFragment : Fragment() {
                 return@launch
             }
 
+            val totalCUP = lista.sumOf { convertirACUP(it.monto, it.moneda) }
             val porFuente = lista.groupBy { it.fuente }.mapValues { (_, list) ->
                 list.sumOf { convertirACUP(it.monto, it.moneda) }
             }
 
             val mensaje = buildString {
-                append("📊 GRÁFICO DE INGRESOS\n\n")
-                append("Total: $${String.format("%.2f", calcularTotalCUP(lista))} CUP\n\n")
-                append("Por fuente:\n")
+                append("📊 INGRESOS POR FUENTE\n\n")
+                append("Total: $${String.format("%.2f", totalCUP)} CUP\n\n")
                 porFuente.forEach { (fuente, total) ->
-                    val barra = "█".repeat((total / calcularTotalCUP(lista) * 20).toInt().coerceAtMost(20))
-                    append("$fuente: $barra $${String.format("%.2f", total)}\n")
+                    val porcentaje = if (totalCUP > 0) (total / totalCUP * 100).toInt() else 0
+                    append("$fuente: $${String.format("%.2f", total)} ($porcentaje%)\n")
                 }
             }
 
@@ -214,7 +222,7 @@ class GananciasFragment : Fragment() {
 
     private fun exportarCSV() {
         lifecycleScope.launch {
-            var lista = listOf<com.creador360pro.data.model.IncomeRecord>()
+            var lista = listOf<IncomeRecord>()
             viewModel.allIncomes.collect { lista = it; return@collect }
 
             if (lista.isEmpty()) {
@@ -240,10 +248,6 @@ class GananciasFragment : Fragment() {
                 Toast.makeText(requireContext(), "Error al guardar CSV: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
-    }
-
-    private fun calcularTotalCUP(ingresos: List<com.creador360pro.data.model.IncomeRecord>): Double {
-        return ingresos.sumOf { convertirACUP(it.monto, it.moneda) }
     }
 
     private fun convertirACUP(monto: Double, moneda: String): Double {
