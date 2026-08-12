@@ -10,8 +10,12 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.creador360pro.R
+import com.creador360pro.data.db.AppDatabase
+import com.creador360pro.data.model.CalendarEvent
 import com.creador360pro.data.model.IdeaItem
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class IdeasFragment : Fragment() {
@@ -23,20 +27,15 @@ class IdeasFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_ideas, container, false)
         llIdeas = view.findViewById(R.id.llIdeas)
 
-        // Cargar ideas precargadas si es la primera vez
         viewModel.cargarIdeasPrecargadas()
 
-        // Observar todas las ideas
         lifecycleScope.launch {
             viewModel.allIdeas.collect { ideas ->
                 actualizarLista(ideas)
             }
         }
 
-        // Botón flotante para añadir idea personalizada
-        view.findViewById<Button>(R.id.btnAgregarIdea).setOnClickListener {
-            agregarIdeaPersonalizada()
-        }
+        view.findViewById<Button>(R.id.btnAgregarIdea).setOnClickListener { agregarIdeaPersonalizada() }
 
         return view
     }
@@ -67,7 +66,6 @@ class IdeasFragment : Fragment() {
             val btnUsar = card.findViewById<Button>(R.id.btnUsar)
             val btnFavorito = card.findViewById<Button>(R.id.btnFavorito)
 
-            // Botón favorito
             if (idea.estadoUso == "favorita") {
                 btnFavorito.text = "★"
                 btnFavorito.setBackgroundColor(Color.parseColor("#FFD700"))
@@ -80,19 +78,10 @@ class IdeasFragment : Fragment() {
                 viewModel.toggleFavorite(idea.id, idea.estadoUso)
             }
 
-            // Botón usar (agregar al calendario)
             btnUsar.setOnClickListener {
-                AlertDialog.Builder(requireContext())
-                    .setTitle("Usar idea")
-                    .setMessage("¿Agregar esta idea al calendario editorial?")
-                    .setPositiveButton("Sí") { _, _ ->
-                        Toast.makeText(requireContext(), "Idea agregada al calendario", Toast.LENGTH_SHORT).show()
-                    }
-                    .setNegativeButton("No", null)
-                    .show()
+                agregarAlCalendario(idea)
             }
 
-            // Toque largo para eliminar
             card.setOnLongClickListener {
                 AlertDialog.Builder(requireContext())
                     .setTitle("Eliminar idea")
@@ -108,6 +97,38 @@ class IdeasFragment : Fragment() {
 
             llIdeas.addView(card)
         }
+    }
+
+    private fun agregarAlCalendario(idea: IdeaItem) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Agregar al calendario")
+            .setMessage("¿Programar esta idea para mañana?\n\n\"${idea.titulo}\"")
+            .setPositiveButton("Agregar") { _, _ ->
+                lifecycleScope.launch {
+                    val db = AppDatabase.getInstance(requireContext())
+                    withContext(Dispatchers.IO) {
+                        val cal = Calendar.getInstance()
+                        cal.add(Calendar.DAY_OF_MONTH, 1)
+                        cal.set(Calendar.HOUR_OF_DAY, 10)
+                        cal.set(Calendar.MINUTE, 0)
+                        cal.set(Calendar.SECOND, 0)
+                        cal.set(Calendar.MILLISECOND, 0)
+
+                        val event = CalendarEvent(
+                            titulo = idea.titulo,
+                            plataforma = "General",
+                            tipo = "Idea",
+                            estado = "Pendiente",
+                            prioridad = "Media",
+                            fechaHora = cal.timeInMillis
+                        )
+                        db.calendarDao().insertEvent(event)
+                    }
+                    Toast.makeText(requireContext(), "Idea agregada al calendario", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun agregarIdeaPersonalizada() {
