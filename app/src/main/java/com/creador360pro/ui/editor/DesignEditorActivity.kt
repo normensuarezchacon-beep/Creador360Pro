@@ -9,7 +9,11 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.view.Gravity
 import android.view.View
-import android.widget.*
+import android.widget.Button
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.setPadding
@@ -27,7 +31,8 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 class DesignEditorActivity : AppCompatActivity() {
 
@@ -55,16 +60,23 @@ class DesignEditorActivity : AppCompatActivity() {
     private fun setupToolbar() {
         findViewById<Button>(R.id.btnAdd).setOnClickListener { showAddMenu() }
         findViewById<Button>(R.id.btnLayers).setOnClickListener {
-            if (llCapas.visibility == View.VISIBLE) llCapas.visibility = View.GONE
-            else {
+            if (llCapas.visibility == View.VISIBLE) {
+                llCapas.visibility = View.GONE
+            } else {
                 llCapas.visibility = View.VISIBLE
                 updateLayersList()
             }
         }
         findViewById<Button>(R.id.btnSave).setOnClickListener { saveProject() }
         findViewById<Button>(R.id.btnExport).setOnClickListener { exportImage() }
-        findViewById<Button>(R.id.btnUndo).setOnClickListener { canvasView.undo(); updateLayersList() }
-        findViewById<Button>(R.id.btnRedo).setOnClickListener { canvasView.redo(); updateLayersList() }
+        findViewById<Button>(R.id.btnUndo).setOnClickListener {
+            canvasView.undo()
+            updateLayersList()
+        }
+        findViewById<Button>(R.id.btnRedo).setOnClickListener {
+            canvasView.redo()
+            updateLayersList()
+        }
         findViewById<Button>(R.id.btnProperties).setOnClickListener {
             val index = canvasView.getSelectedLayerIndex()
             if (index >= 0 && index < canvasView.getLayersList().size) {
@@ -128,7 +140,10 @@ class DesignEditorActivity : AppCompatActivity() {
     }
 
     private fun addImageLayer() {
-        startActivityForResult(Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI), 100)
+        startActivityForResult(
+            Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI),
+            100
+        )
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -140,7 +155,9 @@ class DesignEditorActivity : AppCompatActivity() {
                     val bitmap = loadSampledBitmap(uri, 1200, 1200)
                     val fileName = "img_${System.currentTimeMillis()}.png"
                     val file = File(filesDir, fileName)
-                    FileOutputStream(file).use { out -> bitmap.compress(Bitmap.CompressFormat.PNG, 85, out) }
+                    FileOutputStream(file).use { out ->
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 85, out)
+                    }
                     imageFiles.add(file)
                     canvasView.saveState()
                     canvasView.addLayer(
@@ -165,13 +182,17 @@ class DesignEditorActivity : AppCompatActivity() {
 
     private fun loadSampledBitmap(uri: Uri, maxWidth: Int, maxHeight: Int): Bitmap {
         val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, options) }
+        contentResolver.openInputStream(uri)?.use {
+            BitmapFactory.decodeStream(it, null, options)
+        }
         var sampleSize = 1
         while (options.outWidth / sampleSize > maxWidth || options.outHeight / sampleSize > maxHeight) {
             sampleSize *= 2
         }
         val decodeOptions = BitmapFactory.Options().apply { inSampleSize = sampleSize }
-        contentResolver.openInputStream(uri)?.use { return BitmapFactory.decodeStream(it, null, decodeOptions) }
+        contentResolver.openInputStream(uri)?.use {
+            return BitmapFactory.decodeStream(it, null, decodeOptions)
+        }
         throw Exception("No se pudo cargar la imagen")
     }
 
@@ -248,7 +269,9 @@ class DesignEditorActivity : AppCompatActivity() {
     private fun showTextProperties(layer: DesignLayer) {
         AlertDialog.Builder(this)
             .setTitle("Propiedades de texto")
-            .setItems(arrayOf("Cambiar texto", "Cambiar fuente", "Cambiar color", "Cambiar tamaño")) { _, which ->
+            .setItems(
+                arrayOf("Cambiar texto", "Cambiar fuente", "Cambiar color", "Cambiar tamaño")
+            ) { _, which ->
                 when (which) {
                     0 -> changeText(layer)
                     1 -> changeFont(layer)
@@ -302,7 +325,9 @@ class DesignEditorActivity : AppCompatActivity() {
         val sizeValues = floatArrayOf(20f, 40f, 60f, 80f)
         AlertDialog.Builder(this)
             .setTitle("Tamaño de texto")
-            .setItems(arrayOf("Pequeño (20)", "Mediano (40)", "Grande (60)", "Muy grande (80)")) { _, which ->
+            .setItems(
+                arrayOf("Pequeño (20)", "Mediano (40)", "Grande (60)", "Muy grande (80)")
+            ) { _, which ->
                 canvasView.saveState()
                 layer.textSize = sizeValues[which]
                 canvasView.invalidate()
@@ -313,7 +338,9 @@ class DesignEditorActivity : AppCompatActivity() {
     private fun showImageProperties(layer: DesignLayer) {
         AlertDialog.Builder(this)
             .setTitle("Propiedades de imagen")
-            .setItems(arrayOf("Aplicar filtro", "Eliminar fondo (IA)", "Ajustar brillo/contraste")) { _, which ->
+            .setItems(
+                arrayOf("Aplicar filtro", "Eliminar fondo (IA)", "Ajustar brillo/contraste")
+            ) { _, which ->
                 when (which) {
                     0 -> applyFilter(layer)
                     1 -> removeBackground(layer)
@@ -344,7 +371,7 @@ class DesignEditorActivity : AppCompatActivity() {
         if (!TFLiteHelper.isAvailable()) {
             AlertDialog.Builder(this)
                 .setTitle("Función no disponible")
-                .setMessage("No se encontró ningún modelo de IA.\n\nAsegúrate de tener:\n- mediapipe_selfie_segmentation.tflite\nen app/src/main/assets/models/")
+                .setMessage("No se encontró ningún modelo de IA.")
                 .setPositiveButton("Entendido", null)
                 .show()
             return
@@ -462,11 +489,4 @@ class DesignEditorActivity : AppCompatActivity() {
                 if (currentProjectId != null) {
                     val existing = db.designProjectDao().getProjectById(currentProjectId!!)
                     if (existing != null) {
-                        db.designProjectDao().updateProject(
-                            existing.copy(
-                                nombre = projectName,
-                                fechaModificacion = System.currentTimeMillis(),
-                                jsonCapas = jsonCapas
-                            )
-                        )
-        
+    
