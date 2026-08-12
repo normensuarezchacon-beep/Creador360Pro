@@ -2,7 +2,9 @@ package com.creador360pro.ui.editor
 
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.Gravity
@@ -87,6 +89,7 @@ class DesignEditorActivity : AppCompatActivity() {
             .setPositiveButton("Añadir") { _, _ ->
                 val text = input.text.toString()
                 if (text.isNotEmpty()) {
+                    canvasView.saveState()
                     canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = text, x = 100f, y = 200f, color = "#000000", textSize = 40f, fontName = "Montserrat"))
                     updateLayersList(); canvasView.invalidate()
                 }
@@ -103,11 +106,13 @@ class DesignEditorActivity : AppCompatActivity() {
             val uri = data?.data
             if (uri != null) {
                 try {
-                    val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
+                    // Cargar con downsampling para evitar OOM
+                    val bitmap = loadSampledBitmap(uri, 1200, 1200)
                     val fileName = "img_${System.currentTimeMillis()}.png"
                     val file = File(filesDir, fileName)
-                    FileOutputStream(file).use { out -> bitmap.compress(Bitmap.CompressFormat.PNG, 90, out) }
+                    FileOutputStream(file).use { out -> bitmap.compress(Bitmap.CompressFormat.PNG, 85, out) }
                     imageFiles.add(file)
+                    canvasView.saveState()
                     canvasView.addLayer(DesignLayer(type = LayerType.IMAGE, bitmap = bitmap, x = 150f, y = 150f, width = bitmap.width.toFloat(), height = bitmap.height.toFloat(), imagePath = file.absolutePath))
                     updateLayersList(); canvasView.invalidate()
                 } catch (e: Exception) {
@@ -117,7 +122,20 @@ class DesignEditorActivity : AppCompatActivity() {
         }
     }
 
+    private fun loadSampledBitmap(uri: Uri, maxWidth: Int, maxHeight: Int): Bitmap {
+        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, options) }
+        var sampleSize = 1
+        while (options.outWidth / sampleSize > maxWidth || options.outHeight / sampleSize > maxHeight) {
+            sampleSize *= 2
+        }
+        val decodeOptions = BitmapFactory.Options().apply { inSampleSize = sampleSize }
+        contentResolver.openInputStream(uri)?.use { return BitmapFactory.decodeStream(it, null, decodeOptions) }
+        throw Exception("No se pudo cargar la imagen")
+    }
+
     private fun addShapeLayer(shape: String) {
+        canvasView.saveState()
         canvasView.addLayer(DesignLayer(type = if (shape == "circle") LayerType.CIRCLE else LayerType.RECTANGLE, x = 200f, y = 200f, width = 150f, height = if (shape == "circle") 150f else 100f, color = "#8B5CF6"))
         updateLayersList(); canvasView.invalidate()
     }
@@ -163,22 +181,34 @@ class DesignEditorActivity : AppCompatActivity() {
 
     private fun changeText(layer: DesignLayer) {
         val input = EditText(this); input.setText(layer.text)
-        AlertDialog.Builder(this).setTitle("Editar texto").setView(input).setPositiveButton("OK") { _, _ -> layer.text = input.text.toString(); canvasView.invalidate() }.setNegativeButton("Cancelar", null).show()
+        AlertDialog.Builder(this).setTitle("Editar texto").setView(input).setPositiveButton("OK") { _, _ ->
+            canvasView.saveState()
+            layer.text = input.text.toString(); canvasView.invalidate()
+        }.setNegativeButton("Cancelar", null).show()
     }
 
     private fun changeFont(layer: DesignLayer) {
         val fonts = FontManager.getAvailableFonts().toTypedArray()
-        AlertDialog.Builder(this).setTitle("Elegir fuente").setItems(fonts) { _, which -> layer.fontName = fonts[which]; canvasView.invalidate() }.show()
+        AlertDialog.Builder(this).setTitle("Elegir fuente").setItems(fonts) { _, which ->
+            canvasView.saveState()
+            layer.fontName = fonts[which]; canvasView.invalidate()
+        }.show()
     }
 
     private fun changeColor(layer: DesignLayer) {
         val hexCodes = arrayOf("#000000", "#FFFFFF", "#FF0000", "#0000FF", "#00FF00", "#FF9800", "#8B5CF6")
-        AlertDialog.Builder(this).setTitle("Color de texto").setItems(arrayOf("Negro", "Blanco", "Rojo", "Azul", "Verde", "Naranja", "Púrpura")) { _, which -> layer.color = hexCodes[which]; canvasView.invalidate() }.show()
+        AlertDialog.Builder(this).setTitle("Color de texto").setItems(arrayOf("Negro", "Blanco", "Rojo", "Azul", "Verde", "Naranja", "Púrpura")) { _, which ->
+            canvasView.saveState()
+            layer.color = hexCodes[which]; canvasView.invalidate()
+        }.show()
     }
 
     private fun changeSize(layer: DesignLayer) {
         val sizeValues = floatArrayOf(20f, 40f, 60f, 80f)
-        AlertDialog.Builder(this).setTitle("Tamaño de texto").setItems(arrayOf("Pequeño (20)", "Mediano (40)", "Grande (60)", "Muy grande (80)")) { _, which -> layer.textSize = sizeValues[which]; canvasView.invalidate() }.show()
+        AlertDialog.Builder(this).setTitle("Tamaño de texto").setItems(arrayOf("Pequeño (20)", "Mediano (40)", "Grande (60)", "Muy grande (80)")) { _, which ->
+            canvasView.saveState()
+            layer.textSize = sizeValues[which]; canvasView.invalidate()
+        }.show()
     }
 
     private fun showImageProperties(layer: DesignLayer) {
@@ -191,6 +221,7 @@ class DesignEditorActivity : AppCompatActivity() {
         val filters = FilterType.values().map { it.name }.toTypedArray()
         AlertDialog.Builder(this).setTitle("Aplicar filtro").setItems(filters) { _, which ->
             layer.bitmap?.let { bmp ->
+                canvasView.saveState()
                 val filtered = ImageFilterUtil.applyFilter(bmp, FilterType.values()[which])
                 layer.bitmap = filtered; layer.width = filtered.width.toFloat(); layer.height = filtered.height.toFloat(); canvasView.invalidate()
             }
@@ -200,7 +231,7 @@ class DesignEditorActivity : AppCompatActivity() {
     private fun removeBackground(layer: DesignLayer) {
         if (!TFLiteHelper.isAvailable()) {
             AlertDialog.Builder(this).setTitle("Función no disponible")
-                .setMessage("Eliminar fondo con IA requiere un dispositivo de gama alta.\n\nTu dispositivo:\n${TFLiteHelper.getDeviceInfo(this)}\n\nRequisitos mínimos:\n${TFLiteHelper.getRequiredSpecs()}\n\nEsta función estará disponible para más dispositivos en próximas actualizaciones.")
+                .setMessage("No se encontró ningún modelo de IA.\n\nAsegúrate de tener:\n- mediapipe_selfie_segmentation.tflite\nen app/src/main/assets/models/")
                 .setPositiveButton("Entendido", null).show()
             return
         }
@@ -209,7 +240,7 @@ class DesignEditorActivity : AppCompatActivity() {
     }
 
     private fun executeBackgroundRemoval(layer: DesignLayer) {
-        val progressDialog = AlertDialog.Builder(this).setTitle("Procesando...").setMessage("Eliminando fondo con DeepLabV3...").setCancelable(false).create()
+        val progressDialog = AlertDialog.Builder(this).setTitle("Procesando...").setMessage("Eliminando fondo con IA...").setCancelable(false).create()
         progressDialog.show()
         Thread {
             layer.bitmap?.let { bmp ->
@@ -217,6 +248,7 @@ class DesignEditorActivity : AppCompatActivity() {
                 runOnUiThread {
                     progressDialog.dismiss()
                     if (result != null) {
+                        canvasView.saveState()
                         layer.bitmap = result; layer.width = result.width.toFloat(); layer.height = result.height.toFloat()
                         canvasView.invalidate()
                         Toast.makeText(this, "¡Fondo eliminado!", Toast.LENGTH_LONG).show()
@@ -232,7 +264,10 @@ class DesignEditorActivity : AppCompatActivity() {
 
     private fun showShapeProperties(layer: DesignLayer) {
         val hexCodes = arrayOf("#8B5CF6", "#FF0000", "#0000FF", "#00FF00", "#FF9800", "#000000")
-        AlertDialog.Builder(this).setTitle("Color de forma").setItems(arrayOf("Púrpura", "Rojo", "Azul", "Verde", "Naranja", "Negro")) { _, which -> layer.color = hexCodes[which]; canvasView.invalidate() }.show()
+        AlertDialog.Builder(this).setTitle("Color de forma").setItems(arrayOf("Púrpura", "Rojo", "Azul", "Verde", "Naranja", "Negro")) { _, which ->
+            canvasView.saveState()
+            layer.color = hexCodes[which]; canvasView.invalidate()
+        }.show()
     }
 
     private fun showTemplates() {
@@ -256,16 +291,14 @@ class DesignEditorActivity : AppCompatActivity() {
     private fun saveProject() {
         val jsonCapas = canvasView.toJson()
         val projectName = "Diseño_${SimpleDateFormat("dd/MM HH:mm", Locale.getDefault()).format(Date())}"
-
         val project = DesignProject(
             nombre = projectName,
             fechaCreacion = System.currentTimeMillis(),
             fechaModificacion = System.currentTimeMillis(),
             jsonCapas = jsonCapas,
-            anchoLienzo = canvasView.width,
-            altoLienzo = canvasView.height
+            anchoLienzo = 1080,
+            altoLienzo = 1080
         )
-
         lifecycleScope.launch {
             val db = AppDatabase.getInstance(this@DesignEditorActivity)
             withContext(Dispatchers.IO) {
@@ -300,15 +333,12 @@ class DesignEditorActivity : AppCompatActivity() {
             val db = AppDatabase.getInstance(this@DesignEditorActivity)
             var projects = listOf<DesignProject>()
             withContext(Dispatchers.IO) { db.designProjectDao().getAllProjects().collect { projects = it; return@collect } }
-
             if (projects.isEmpty()) {
                 AlertDialog.Builder(this@DesignEditorActivity).setTitle("Proyectos guardados").setMessage("No hay proyectos guardados.").setPositiveButton("OK", null).show()
                 return@launch
             }
-
             val sdf = SimpleDateFormat("dd/MM/yy HH:mm", Locale.getDefault())
             val nombres = projects.map { "${it.nombre} (${sdf.format(Date(it.fechaModificacion))})" }.toTypedArray()
-
             AlertDialog.Builder(this@DesignEditorActivity)
                 .setTitle("Cargar proyecto")
                 .setItems(nombres) { _, which -> currentProjectId = projects[which].id; loadProject(projects[which].id) }
@@ -322,20 +352,14 @@ class DesignEditorActivity : AppCompatActivity() {
     }
 
     private fun exportImage() {
-        AlertDialog.Builder(this).setTitle("Exportar como").setItems(arrayOf("JPG (comprimido)", "PNG (alta calidad)")) { _, which ->
-            try {
-                val bitmap = canvasView.exportToBitmap()
-                val extension = if (which == 0) "jpg" else "png"
-                val format = if (which == 0) Bitmap.CompressFormat.JPEG else Bitmap.CompressFormat.PNG
-                val path = MediaStore.Images.Media.insertImage(contentResolver, bitmap, "Creador360_${System.currentTimeMillis()}.$extension", "Creado con Creador360 PRO")
-                if (path != null && path.isNotEmpty()) Toast.makeText(this, "¡Guardado como $extension!", Toast.LENGTH_LONG).show()
-                else Toast.makeText(this, "Error al guardar", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) { Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show() }
-        }.show()
-    }
+        val resolutions = arrayOf("1080 x 1080 (Post)", "1080 x 1920 (Story)", "1280 x 720 (YouTube)")
+        val widths = intArrayOf(1080, 1080, 1280)
+        val heights = intArrayOf(1080, 1920, 720)
 
-    override fun onDestroy() {
-        super.onDestroy()
-        TFLiteHelper.close()
-    }
-}
+        AlertDialog.Builder(this)
+            .setTitle("Resolución de exportación")
+            .setItems(resolutions) { _, which ->
+                val formatos = arrayOf("JPG (comprimido)", "PNG (alta calidad)")
+                AlertDialog.Builder(this)
+                    .setTitle("Formato")
+                    .setItems(forma
