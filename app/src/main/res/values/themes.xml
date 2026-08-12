@@ -1,13 +1,19 @@
 <resources>
+    <!-- Tema Claro -->
     <style name="Theme.Creador360" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">#8B5CF6</item>
-        <item name="colorPrimaryVariant">#7C3AED</item>
+        <item name="colorPrimaryVariant">#6D28D9</item>
         <item name="colorOnPrimary">#FFFFFF</item>
-        <item name="colorSecondary">#8B5CF6</item>
+        <item name="colorSecondary">#EC4899</item>
+        <item name="colorSecondaryVariant">#BE185D</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
         <item name="colorSurface">#FFFFFF</item>
-        <item name="colorOnSurface">#333333</item>
-        <item name="android:colorBackground">#FAFAFA</item>
-        <item name="android:statusBarColor">#FAFAFA</item>
+        <item name="colorOnSurface">#1F2937</item>
+        <item name="android:colorBackground">#F9FAFB</item>
+        <item name="android:statusBarColor">#F9FAFB</item>
         <item name="android:navigationBarColor">#FFFFFF</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="fontFamily">@font/poppins</item>
+        <item name="android:windowBackground">@color/canva_bg</item>
     </style>
 </resources>
