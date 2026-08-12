@@ -8,9 +8,9 @@ import android.provider.MediaStore
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import com.creador360pro.R
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileOutputStream
 
 class VideoEditorActivity : AppCompatActivity() {
@@ -19,11 +19,7 @@ class VideoEditorActivity : AppCompatActivity() {
     private lateinit var videoPreview: VideoView
     private lateinit var seekBar: SeekBar
     private lateinit var tvTime: TextView
-    private var startTimeMs = 0L
-    private var endTimeMs = 0L
     private var videoDuration = 0
-    private var currentSpeed = 1.0f
-    private var isMuted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,9 +36,6 @@ class VideoEditorActivity : AppCompatActivity() {
 
     private fun setupToolbar() {
         findViewById<Button>(R.id.btnImport).setOnClickListener { importVideo() }
-        findViewById<Button>(R.id.btnTrim).setOnClickListener { trimVideo() }
-        findViewById<Button>(R.id.btnSpeed).setOnClickListener { changeSpeed() }
-        findViewById<Button>(R.id.btnMute).setOnClickListener { toggleMute() }
         findViewById<Button>(R.id.btnExport).setOnClickListener { exportVideo() }
         findViewById<Button>(R.id.btnBack).setOnClickListener { finish() }
     }
@@ -61,7 +54,6 @@ class VideoEditorActivity : AppCompatActivity() {
         videoPreview.setOnPreparedListener { mp ->
             videoDuration = videoPreview.duration
             seekBar.max = videoDuration
-            endTimeMs = videoDuration.toLong()
             updateTimeDisplay()
         }
 
@@ -76,7 +68,6 @@ class VideoEditorActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(sb: SeekBar?) {}
         })
 
-        // Actualizar tiempo durante reproducción
         Thread {
             while (true) {
                 if (videoPreview.isPlaying) {
@@ -95,7 +86,8 @@ class VideoEditorActivity : AppCompatActivity() {
         val total = videoDuration
         val currentSec = current / 1000
         val totalSec = total / 1000
-        tvTime.text = String.format("%02d:%02d / %02d:%02d",
+        tvTime.text = String.format(
+            "%02d:%02d / %02d:%02d",
             currentSec / 60, currentSec % 60,
             totalSec / 60, totalSec % 60
         )
@@ -113,74 +105,9 @@ class VideoEditorActivity : AppCompatActivity() {
             videoUri?.let {
                 videoPreview.setVideoURI(it)
                 videoPreview.start()
-                startTimeMs = 0L
-                endTimeMs = 0L
-                currentSpeed = 1.0f
-                isMuted = false
                 Toast.makeText(this, "Video cargado correctamente", Toast.LENGTH_SHORT).show()
             }
         }
-    }
-
-    private fun trimVideo() {
-        if (videoUri == null) {
-            Toast.makeText(this, "Primero importa un video", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val options = arrayOf(
-            "Marcar inicio (actual: ${formatTime(startTimeMs)})",
-            "Marcar final (actual: ${formatTime(endTimeMs)})",
-            "Resetear recorte"
-        )
-        AlertDialog.Builder(this)
-            .setTitle("Herramientas de recorte")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> {
-                        startTimeMs = videoPreview.currentPosition.toLong()
-                        Toast.makeText(this, "Inicio: ${formatTime(startTimeMs)}", Toast.LENGTH_SHORT).show()
-                    }
-                    1 -> {
-                        endTimeMs = videoPreview.currentPosition.toLong()
-                        if (endTimeMs == 0L) endTimeMs = videoDuration.toLong()
-                        Toast.makeText(this, "Final: ${formatTime(endTimeMs)}", Toast.LENGTH_SHORT).show()
-                    }
-                    2 -> {
-                        startTimeMs = 0L
-                        endTimeMs = videoDuration.toLong()
-                        Toast.makeText(this, "Recorte reseteado", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-            .setNegativeButton("Cancelar", null)
-            .show()
-    }
-
-    private fun changeSpeed() {
-        if (videoUri == null) {
-            Toast.makeText(this, "Primero importa un video", Toast.LENGTH_SHORT).show()
-            return
-        }
-        val speeds = arrayOf("0.5x (cámara lenta)", "1x (normal)", "1.5x (rápido)", "2x (muy rápido)")
-        AlertDialog.Builder(this)
-            .setTitle("Velocidad del video")
-            .setItems(speeds) { _, which ->
-                currentSpeed = when (which) {
-                    0 -> 0.5f; 1 -> 1f; 2 -> 1.5f; 3 -> 2f
-                    else -> 1f
-                }
-                Toast.makeText(this, "Velocidad: ${currentSpeed}x (se aplicará al exportar)", Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton("Cancelar", null)
-            .show()
-    }
-
-    private fun toggleMute() {
-        isMuted = !isMuted
-        val btn = findViewById<Button>(R.id.btnMute)
-        btn.text = if (isMuted) "🔇" else "🔊"
-        Toast.makeText(this, if (isMuted) "Audio silenciado" else "Audio activado", Toast.LENGTH_SHORT).show()
     }
 
     private fun exportVideo() {
@@ -189,21 +116,9 @@ class VideoEditorActivity : AppCompatActivity() {
             return
         }
 
-        val options = arrayOf("MP4 comprimido (WhatsApp)", "MP4 alta calidad")
-        AlertDialog.Builder(this)
-            .setTitle("Exportar video")
-            .setItems(options) { _, which ->
-                val quality = if (which == 0) "comprimido" else "alta calidad"
-                exportVideoFile(quality)
-            }
-            .setNegativeButton("Cancelar", null)
-            .show()
-    }
-
-    private fun exportVideoFile(quality: String) {
         val progressDialog = AlertDialog.Builder(this)
             .setTitle("Exportando video...")
-            .setMessage("Procesando con calidad $quality. Esto puede tardar unos segundos.")
+            .setMessage("Copiando video a la carpeta Descargas.")
             .setCancelable(false)
             .create()
         progressDialog.show()
@@ -213,7 +128,6 @@ class VideoEditorActivity : AppCompatActivity() {
                 val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                 val outputFile = File(downloadsDir, "Creador360_${System.currentTimeMillis()}.mp4")
 
-                // Usar contenido del URI para copiar con recorte
                 contentResolver.openInputStream(videoUri!!)?.use { inputStream ->
                     FileOutputStream(outputFile).use { outputStream ->
                         val buffer = ByteArray(8192)
@@ -228,17 +142,9 @@ class VideoEditorActivity : AppCompatActivity() {
                     progressDialog.dismiss()
                     AlertDialog.Builder(this)
                         .setTitle("Video exportado")
-                        .setMessage("Archivo guardado en:\n${outputFile.absolutePath}\n\n" +
-                                "Tamaño: ${outputFile.length() / 1024} KB\n" +
-                                "Recorte: ${formatTime(startTimeMs)} - ${formatTime(endTimeMs)}\n" +
-                                "Velocidad: ${currentSpeed}x\n" +
-                                "Audio: ${if (isMuted) "Silenciado" else "Conservado"}")
+                        .setMessage("Archivo guardado en:\n${outputFile.absolutePath}\n\nTamaño: ${outputFile.length() / 1024} KB")
                         .setPositiveButton("Compartir") { _, _ ->
-                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                type = "video/*"
-                                putExtra(Intent.EXTRA_STREAM, Uri.fromFile(outputFile))
-                            }
-                            startActivity(Intent.createChooser(shareIntent, "Compartir video"))
+                            compartirVideo(outputFile)
                         }
                         .setNegativeButton("OK", null)
                         .show()
@@ -252,8 +158,21 @@ class VideoEditorActivity : AppCompatActivity() {
         }.start()
     }
 
-    private fun formatTime(ms: Long): String {
-        val seconds = ms / 1000
-        return String.format("%02d:%02d", seconds / 60, seconds % 60)
+    private fun compartirVideo(file: File) {
+        try {
+            val uri = FileProvider.getUriForFile(
+                this,
+                "${packageName}.fileprovider",
+                file
+            )
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "video/mp4"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(intent, "Compartir video"))
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error al compartir: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 }
