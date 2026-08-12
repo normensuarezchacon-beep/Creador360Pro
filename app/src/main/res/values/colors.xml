@@ -1,6 +1,11 @@
 <resources>
     <color name="canva_purple">#8B5CF6</color>
-    <color name="canva_bg">#FAFAFA</color>
-    <color name="canva_text_primary">#333333</color>
-    <color name="canva_text_secondary">#888888</color>
+    <color name="canva_purple_dark">#6D28D9</color>
+    <color name="canva_pink">#EC4899</color>
+    <color name="canva_bg">#F9FAFB</color>
+    <color name="canva_surface">#FFFFFF</color>
+    <color name="canva_text_primary">#1F2937</color>
+    <color name="canva_text_secondary">#6B7280</color>
+    <color name="canva_text_hint">#9CA3AF</color>
+    <color name="canva_divider">#E5E7EB</color>
 </resources>
