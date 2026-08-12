@@ -181,19 +181,22 @@ class DesignEditorActivity : AppCompatActivity() {
     }
 
     private fun loadSampledBitmap(uri: Uri, maxWidth: Int, maxHeight: Int): Bitmap {
-        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        contentResolver.openInputStream(uri)?.use {
-            BitmapFactory.decodeStream(it, null, options)
+    val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    contentResolver.openInputStream(uri)?.use { inputStream ->
+        BitmapFactory.decodeStream(inputStream, null, options)
+    }
+    var sampleSize = 1
+    while (options.outWidth / sampleSize > maxWidth || options.outHeight / sampleSize > maxHeight) {
+        sampleSize *= 2
+    }
+    val decodeOptions = BitmapFactory.Options().apply { inSampleSize = sampleSize }
+    contentResolver.openInputStream(uri)?.use { inputStream ->
+        val bitmap = BitmapFactory.decodeStream(inputStream, null, decodeOptions)
+        if (bitmap != null) {
+            return bitmap
         }
-        var sampleSize = 1
-        while (options.outWidth / sampleSize > maxWidth || options.outHeight / sampleSize > maxHeight) {
-            sampleSize *= 2
-        }
-        val decodeOptions = BitmapFactory.Options().apply { inSampleSize = sampleSize }
-        contentResolver.openInputStream(uri)?.use {
-            return BitmapFactory.decodeStream(it, null, decodeOptions)
-        }
-        throw Exception("No se pudo cargar la imagen")
+    }
+    throw Exception("No se pudo cargar la imagen")
     }
 
     private fun addShapeLayer(shape: String) {
