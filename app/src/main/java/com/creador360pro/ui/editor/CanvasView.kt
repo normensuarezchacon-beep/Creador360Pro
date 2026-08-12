@@ -18,8 +18,8 @@ class CanvasView @JvmOverloads constructor(
 
     private val layersList = mutableListOf<DesignLayer>()
     private var selectedLayerIndex = -1
-    private val undoStack = mutableListOf<MutableList<DesignLayer>>()
-    private val redoStack = mutableListOf<MutableList<DesignLayer>>()
+    private val undoStack = mutableListOf<List<DesignLayer>>()
+    private val redoStack = mutableListOf<List<DesignLayer>>()
 
     private var isDragging = false
     private var lastX = 0f
@@ -28,6 +28,7 @@ class CanvasView @JvmOverloads constructor(
     private val scaleDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector): Boolean {
             if (selectedLayerIndex >= 0 && selectedLayerIndex < layersList.size) {
+                saveState()
                 val layer = layersList[selectedLayerIndex]
                 layer.width *= detector.scaleFactor
                 layer.height *= detector.scaleFactor
@@ -64,7 +65,7 @@ class CanvasView @JvmOverloads constructor(
 
     fun undo() {
         if (undoStack.isNotEmpty()) {
-            redoStack.add(layersList.toMutableList())
+            redoStack.add(layersList.map { it.copy() })
             layersList.clear()
             layersList.addAll(undoStack.removeAt(undoStack.size - 1))
             if (selectedLayerIndex >= layersList.size) selectedLayerIndex = layersList.size - 1
@@ -74,7 +75,7 @@ class CanvasView @JvmOverloads constructor(
 
     fun redo() {
         if (redoStack.isNotEmpty()) {
-            undoStack.add(layersList.toMutableList())
+            undoStack.add(layersList.map { it.copy() })
             layersList.clear()
             layersList.addAll(redoStack.removeAt(redoStack.size - 1))
             if (selectedLayerIndex >= layersList.size) selectedLayerIndex = layersList.size - 1
@@ -82,12 +83,16 @@ class CanvasView @JvmOverloads constructor(
         }
     }
 
-    fun exportToBitmap(): Bitmap {
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    fun exportToBitmap(canvasWidth: Int, canvasHeight: Int): Bitmap {
+        val bitmap = Bitmap.createBitmap(canvasWidth, canvasHeight, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         canvas.drawColor(Color.WHITE)
-        drawLayers(canvas)
+        drawLayers(canvas, canvasWidth, canvasHeight)
         return bitmap
+    }
+
+    fun exportToBitmap(): Bitmap {
+        return exportToBitmap(width, height)
     }
 
     fun toJson(): String {
@@ -139,8 +144,8 @@ class CanvasView @JvmOverloads constructor(
         invalidate()
     }
 
-    private fun saveState() {
-        undoStack.add(layersList.toMutableList())
+    fun saveState() {
+        undoStack.add(layersList.map { it.copy() })
         redoStack.clear()
     }
 
@@ -148,7 +153,7 @@ class CanvasView @JvmOverloads constructor(
         super.onDraw(canvas)
         canvas.drawColor(Color.parseColor("#F0F0F0"))
         drawGrid(canvas)
-        drawLayers(canvas)
+        drawLayers(canvas, width, height)
     }
 
     private fun drawGrid(canvas: Canvas) {
@@ -164,46 +169,58 @@ class CanvasView @JvmOverloads constructor(
         }
     }
 
-    private fun drawLayers(canvas: Canvas) {
+    private fun drawLayers(canvas: Canvas, canvasWidth: Int, canvasHeight: Int) {
+        val scaleX = canvasWidth.toFloat() / width.toFloat()
+        val scaleY = canvasHeight.toFloat() / height.toFloat()
+
         layersList.forEachIndexed { index, layer ->
-            when (layer.type) {
+            val scaledLayer = layer.copy(
+                x = layer.x * scaleX,
+                y = layer.y * scaleY,
+                width = layer.width * scaleX,
+                height = layer.height * scaleY,
+                textSize = layer.textSize * scaleX
+            )
+
+            when (scaledLayer.type) {
                 LayerType.BACKGROUND -> {
                     val paint = Paint().apply {
-                        color = Color.parseColor(layer.color)
+                        color = Color.parseColor(scaledLayer.color)
                         style = Paint.Style.FILL
                     }
-                    canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
+                    canvas.drawRect(0f, 0f, canvasWidth.toFloat(), canvasHeight.toFloat(), paint)
                 }
                 LayerType.TEXT -> {
                     val paint = Paint().apply {
-                        color = Color.parseColor(layer.color)
-                        textSize = layer.textSize
+                        color = Color.parseColor(scaledLayer.color)
+                        textSize = scaledLayer.textSize
                         isAntiAlias = true
-                        if (layer.fontName != null) {
-                            typeface = FontManager.getTypeface(context, layer.fontName!!)
+                        if (scaledLayer.fontName != null) {
+                            typeface = FontManager.getTypeface(context, scaledLayer.fontName!!)
                         }
                     }
-                    canvas.drawText(layer.text ?: "", layer.x, layer.y + layer.textSize, paint)
+                    canvas.drawText(scaledLayer.text ?: "", scaledLayer.x, scaledLayer.y + scaledLayer.textSize, paint)
                 }
                 LayerType.IMAGE -> {
-                    layer.bitmap?.let { bmp ->
-                        canvas.drawBitmap(bmp, null, RectF(layer.x, layer.y, layer.x + layer.width, layer.y + layer.height), null)
+                    scaledLayer.bitmap?.let { bmp ->
+                        canvas.drawBitmap(bmp, null, RectF(scaledLayer.x, scaledLayer.y, scaledLayer.x + scaledLayer.width, scaledLayer.y + scaledLayer.height), null)
                     }
                 }
                 LayerType.CIRCLE -> {
                     val paint = Paint().apply {
-                        color = Color.parseColor(layer.color)
+                        color = Color.parseColor(scaledLayer.color)
                         style = Paint.Style.FILL
                         isAntiAlias = true
                     }
-                    canvas.drawCircle(layer.x + layer.width / 2, layer.y + layer.height / 2, layer.width / 2, paint)
+                    val radius = minOf(scaledLayer.width, scaledLayer.height) / 2
+                    canvas.drawCircle(scaledLayer.x + scaledLayer.width / 2, scaledLayer.y + scaledLayer.height / 2, radius, paint)
                 }
                 LayerType.RECTANGLE -> {
                     val paint = Paint().apply {
-                        color = Color.parseColor(layer.color)
+                        color = Color.parseColor(scaledLayer.color)
                         style = Paint.Style.FILL
                     }
-                    canvas.drawRect(layer.x, layer.y, layer.x + layer.width, layer.y + layer.height, paint)
+                    canvas.drawRect(scaledLayer.x, scaledLayer.y, scaledLayer.x + scaledLayer.width, scaledLayer.y + scaledLayer.height, paint)
                 }
             }
 
@@ -213,7 +230,7 @@ class CanvasView @JvmOverloads constructor(
                     style = Paint.Style.STROKE
                     strokeWidth = 3f
                 }
-                canvas.drawRect(layer.x - 5, layer.y - 5, layer.x + layer.width + 5, layer.y + layer.height + 5, paint)
+                canvas.drawRect(scaledLayer.x - 5, scaledLayer.y - 5, scaledLayer.x + scaledLayer.width + 5, scaledLayer.y + scaledLayer.height + 5, paint)
             }
         }
     }
