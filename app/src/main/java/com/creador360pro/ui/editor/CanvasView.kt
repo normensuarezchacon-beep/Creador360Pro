@@ -9,6 +9,7 @@ import android.view.View
 import com.creador360pro.util.FontManager
 import org.json.JSONArray
 import org.json.JSONObject
+import kotlin.math.min
 
 class CanvasView @JvmOverloads constructor(
     context: Context,
@@ -24,6 +25,7 @@ class CanvasView @JvmOverloads constructor(
     private var isDragging = false
     private var lastX = 0f
     private var lastY = 0f
+    private var rotationStart = 0f
 
     private val scaleDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector): Boolean {
@@ -83,6 +85,70 @@ class CanvasView @JvmOverloads constructor(
         }
     }
 
+    fun duplicateLayer(index: Int) {
+        if (index in layersList.indices) {
+            saveState()
+            val original = layersList[index]
+            val copy = original.copy(x = original.x + 30f, y = original.y + 30f)
+            layersList.add(index + 1, copy)
+            selectedLayerIndex = index + 1
+            invalidate()
+        }
+    }
+
+    fun deleteLayer(index: Int) {
+        if (index in layersList.indices) {
+            saveState()
+            layersList.removeAt(index)
+            if (selectedLayerIndex >= layersList.size) selectedLayerIndex = layersList.size - 1
+            invalidate()
+        }
+    }
+
+    fun moveLayerUp(index: Int) {
+        if (index in layersList.indices && index < layersList.size - 1) {
+            saveState()
+            val layer = layersList.removeAt(index)
+            layersList.add(index + 1, layer)
+            selectedLayerIndex = index + 1
+            invalidate()
+        }
+    }
+
+    fun moveLayerDown(index: Int) {
+        if (index in layersList.indices && index > 0) {
+            saveState()
+            val layer = layersList.removeAt(index)
+            layersList.add(index - 1, layer)
+            selectedLayerIndex = index - 1
+            invalidate()
+        }
+    }
+
+    fun alignLayer(index: Int, alignment: String) {
+        if (index in layersList.indices) {
+            saveState()
+            val layer = layersList[index]
+            when (alignment) {
+                "CENTER_H" -> layer.x = (width - layer.width) / 2
+                "CENTER_V" -> layer.y = (height - layer.height) / 2
+                "LEFT" -> layer.x = 0f
+                "RIGHT" -> layer.x = width - layer.width
+                "TOP" -> layer.y = 0f
+                "BOTTOM" -> layer.y = height - layer.height
+            }
+            invalidate()
+        }
+    }
+
+    fun setLayerRotation(index: Int, rotation: Float) {
+        if (index in layersList.indices) {
+            saveState()
+            layersList[index].rotation = rotation
+            invalidate()
+        }
+    }
+
     fun exportToBitmap(canvasWidth: Int, canvasHeight: Int): Bitmap {
         val bitmap = Bitmap.createBitmap(canvasWidth, canvasHeight, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -91,9 +157,7 @@ class CanvasView @JvmOverloads constructor(
         return bitmap
     }
 
-    fun exportToBitmap(): Bitmap {
-        return exportToBitmap(width, height)
-    }
+    fun exportToBitmap(): Bitmap = exportToBitmap(width, height)
 
     fun toJson(): String {
         val jsonArray = JSONArray()
@@ -106,6 +170,7 @@ class CanvasView @JvmOverloads constructor(
             json.put("height", layer.height.toDouble())
             json.put("color", layer.color)
             json.put("textSize", layer.textSize.toDouble())
+            json.put("rotation", layer.rotation.toDouble())
             layer.text?.let { json.put("text", it) }
             layer.fontName?.let { json.put("fontName", it) }
             layer.imagePath?.let { json.put("imagePath", it) }
@@ -130,7 +195,8 @@ class CanvasView @JvmOverloads constructor(
                 textSize = json.optDouble("textSize", 40.0).toFloat(),
                 text = json.optString("text", null),
                 fontName = json.optString("fontName", null),
-                imagePath = json.optString("imagePath", null)
+                imagePath = json.optString("imagePath", null),
+                rotation = json.optDouble("rotation", 0.0).toFloat()
             )
             layer.imagePath?.let { path ->
                 val file = java.io.File(path)
@@ -161,12 +227,8 @@ class CanvasView @JvmOverloads constructor(
             color = Color.parseColor("#E0E0E0")
             strokeWidth = 1f
         }
-        for (i in 0..width step 50) {
-            canvas.drawLine(i.toFloat(), 0f, i.toFloat(), height.toFloat(), paint)
-        }
-        for (i in 0..height step 50) {
-            canvas.drawLine(0f, i.toFloat(), width.toFloat(), i.toFloat(), paint)
-        }
+        for (i in 0..width step 50) canvas.drawLine(i.toFloat(), 0f, i.toFloat(), height.toFloat(), paint)
+        for (i in 0..height step 50) canvas.drawLine(0f, i.toFloat(), width.toFloat(), i.toFloat(), paint)
     }
 
     private fun drawLayers(canvas: Canvas, canvasWidth: Int, canvasHeight: Int) {
@@ -182,12 +244,16 @@ class CanvasView @JvmOverloads constructor(
                 textSize = layer.textSize * scaleX
             )
 
+            canvas.save()
+            canvas.rotate(
+                scaledLayer.rotation,
+                scaledLayer.x + scaledLayer.width / 2,
+                scaledLayer.y + scaledLayer.height / 2
+            )
+
             when (scaledLayer.type) {
                 LayerType.BACKGROUND -> {
-                    val paint = Paint().apply {
-                        color = Color.parseColor(scaledLayer.color)
-                        style = Paint.Style.FILL
-                    }
+                    val paint = Paint().apply { color = Color.parseColor(scaledLayer.color); style = Paint.Style.FILL }
                     canvas.drawRect(0f, 0f, canvasWidth.toFloat(), canvasHeight.toFloat(), paint)
                 }
                 LayerType.TEXT -> {
@@ -195,9 +261,7 @@ class CanvasView @JvmOverloads constructor(
                         color = Color.parseColor(scaledLayer.color)
                         textSize = scaledLayer.textSize
                         isAntiAlias = true
-                        if (scaledLayer.fontName != null) {
-                            typeface = FontManager.getTypeface(context, scaledLayer.fontName!!)
-                        }
+                        if (scaledLayer.fontName != null) typeface = FontManager.getTypeface(context, scaledLayer.fontName!!)
                     }
                     canvas.drawText(scaledLayer.text ?: "", scaledLayer.x, scaledLayer.y + scaledLayer.textSize, paint)
                 }
@@ -207,22 +271,17 @@ class CanvasView @JvmOverloads constructor(
                     }
                 }
                 LayerType.CIRCLE -> {
-                    val paint = Paint().apply {
-                        color = Color.parseColor(scaledLayer.color)
-                        style = Paint.Style.FILL
-                        isAntiAlias = true
-                    }
-                    val radius = minOf(scaledLayer.width, scaledLayer.height) / 2
+                    val paint = Paint().apply { color = Color.parseColor(scaledLayer.color); style = Paint.Style.FILL; isAntiAlias = true }
+                    val radius = min(scaledLayer.width, scaledLayer.height) / 2
                     canvas.drawCircle(scaledLayer.x + scaledLayer.width / 2, scaledLayer.y + scaledLayer.height / 2, radius, paint)
                 }
                 LayerType.RECTANGLE -> {
-                    val paint = Paint().apply {
-                        color = Color.parseColor(scaledLayer.color)
-                        style = Paint.Style.FILL
-                    }
+                    val paint = Paint().apply { color = Color.parseColor(scaledLayer.color); style = Paint.Style.FILL }
                     canvas.drawRect(scaledLayer.x, scaledLayer.y, scaledLayer.x + scaledLayer.width, scaledLayer.y + scaledLayer.height, paint)
                 }
             }
+
+            canvas.restore()
 
             if (index == selectedLayerIndex) {
                 val paint = Paint().apply {
@@ -247,6 +306,7 @@ class CanvasView @JvmOverloads constructor(
                         isDragging = true
                         lastX = event.x
                         lastY = event.y
+                        rotationStart = Math.toDegrees(Math.atan2(event.y - (layer.y + layer.height/2).toDouble(), event.x - (layer.x + layer.width/2).toDouble())).toFloat()
                         invalidate()
                         return true
                     }
