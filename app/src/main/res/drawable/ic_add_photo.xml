@@ -3,21 +3,16 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <rect
-        android:x="3"
-        android:y="3"
-        android:width="18"
-        android:height="18"
-        android:rx="2"
-        android:ry="2"
+    <path
         android:fillColor="@android:color/transparent"
+        android:pathData="M5,3h14a2,2 0,0 1,2 2v14a2,2 0,0 1,-2 2H5a2,2 0,0 1,-2 -2V5a2,2 0,0 1,2 -2z"
         android:strokeWidth="2"
-        android:strokeColor="#8B5CF6"/>
-    <circle
-        android:cx="8.5"
-        android:cy="8.5"
-        android:r="1.5"
-        android:fillColor="#8B5CF6"/>
+        android:strokeColor="#8B5CF6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
+    <path
+        android:fillColor="#8B5CF6"
+        android:pathData="M8.5,8.5m-1.5,0a1.5,1.5 0,1 0,3 0a1.5,1.5 0,1 0,-3 0"/>
     <path
         android:fillColor="@android:color/transparent"
         android:pathData="M21,15l-5,-5L5,21"
