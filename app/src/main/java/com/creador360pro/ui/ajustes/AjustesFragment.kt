@@ -3,7 +3,6 @@ package com.creador360pro.ui.ajustes
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
@@ -23,8 +22,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class AjustesFragment : Fragment() {
-
-    private var selectedImageUri: Uri? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_ajustes, container, false)
@@ -85,7 +82,7 @@ class AjustesFragment : Fragment() {
         }
 
         val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-        val nombres = backupFiles.map { "${it.name} (${sdf.format(Date(it.lastModified))})" }.toTypedArray()
+        val nombres = backupFiles.map { "${it.name} (${sdf.format(Date(it.lastModified()))})" }.toTypedArray()
 
         AlertDialog.Builder(requireContext())
             .setTitle("Restaurar backup")
@@ -145,7 +142,6 @@ class AjustesFragment : Fragment() {
         if (resultCode == android.app.Activity.RESULT_OK && data != null) {
             val uri = data.data
             if (uri != null) {
-                selectedImageUri = uri
                 when (requestCode) {
                     100 -> publicarEnInstagram(uri)
                     101 -> publicarEnFacebook(uri)
