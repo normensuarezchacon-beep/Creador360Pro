@@ -1,10 +1,13 @@
 package com.creador360pro.ui.splash
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.view.View
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.creador360pro.R
@@ -44,8 +47,18 @@ class SplashScreenActivity : AppCompatActivity() {
                 .start()
         }
 
-        // Mostrar invexXo después de que aparezcan las letras
+        // Configurar invexXo con la X en azul
         val tvInvexXo = findViewById<TextView>(R.id.tvInvexXo)
+        val spannable = SpannableString("invexXo")
+        spannable.setSpan(
+            ForegroundColorSpan(Color.parseColor("#234CF9")),
+            5,
+            6,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        tvInvexXo.text = spannable
+
+        // Animar la aparición de invexXo
         tvInvexXo.alpha = 0f
         tvInvexXo.animate()
             .alpha(1f)
