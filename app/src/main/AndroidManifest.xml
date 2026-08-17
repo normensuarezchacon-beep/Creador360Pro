@@ -13,16 +13,23 @@
         android:label="Creador360 PRO"
         android:theme="@style/Theme.Creador360"
         android:supportsRtl="true">
-        
+
+        <!-- Splash Screen como launcher -->
         <activity
-            android:name=".ui.MainActivity"
+            android:name=".ui.splash.SplashScreenActivity"
             android:exported="true"
-            android:windowSoftInputMode="adjustResize">
+            android:theme="@style/Theme.Creador360.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- MainActivity ya no es launcher -->
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity android:name=".ui.editor.DesignEditorActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".ui.editor.VideoEditorActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
