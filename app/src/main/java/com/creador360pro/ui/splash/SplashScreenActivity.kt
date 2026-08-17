@@ -58,7 +58,7 @@ class SplashScreenActivity : AppCompatActivity() {
         )
         tvInvexXo.text = spannable
 
-        // Animar la aparición de invexXo
+        // Animar invexXo
         tvInvexXo.alpha = 0f
         tvInvexXo.animate()
             .alpha(1f)
@@ -68,8 +68,13 @@ class SplashScreenActivity : AppCompatActivity() {
 
         // Navegar a MainActivity después de 3 segundos
         Handler(Looper.getMainLooper()).postDelayed({
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
+            try {
+                startActivity(Intent(this, MainActivity::class.java))
+                finish()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                finish()
+            }
         }, 3000)
     }
 }
