@@ -6,6 +6,8 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import android.view.Gravity
 import android.view.View
@@ -33,6 +35,7 @@ import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 class DesignEditorActivity : AppCompatActivity() {
 
@@ -41,6 +44,13 @@ class DesignEditorActivity : AppCompatActivity() {
     private var selectedLayerIndex = -1
     private var currentProjectId: Long? = null
     private val imageFiles = mutableListOf<File>()
+    private val autosaveHandler = Handler(Looper.getMainLooper())
+private val autosaveRunnable = object : Runnable {
+    override fun run() {
+        saveProject()
+        autosaveHandler.postDelayed(this, TimeUnit.MINUTES.toMillis(2))
+    }
+}
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,7 +65,11 @@ class DesignEditorActivity : AppCompatActivity() {
         if (currentProjectId != null) {
             loadProject(currentProjectId!!)
         }
+        
+        autosaveHandler.postDelayed(autosaveRunnable, TimeUnit.MINUTES.toMillis(2))
     }
+
+    
 
     private fun setupToolbar() {
         findViewById<Button>(R.id.btnAdd).setOnClickListener { showAddMenu() }
@@ -881,7 +895,9 @@ private fun saveProject() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
+    super.onDestroy()
+    autosaveHandler.removeCallbacks(autosaveRunnable)
+    canvasView.recycleBitmaps()
     }
 }
     
