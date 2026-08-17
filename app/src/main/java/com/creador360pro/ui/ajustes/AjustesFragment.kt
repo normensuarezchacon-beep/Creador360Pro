@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,6 +24,8 @@ import java.util.*
 
 class AjustesFragment : Fragment() {
 
+    private var selectedImageUri: Uri? = null
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_ajustes, container, false)
 
@@ -38,18 +41,11 @@ class AjustesFragment : Fragment() {
     private fun backupData() {
         AlertDialog.Builder(requireContext())
             .setTitle("Copia de seguridad")
-            .setMessage("¿Crear un archivo .c360backup con todos tus datos?\n\n" +
-                    "Incluye:\n" +
-                    "• Ingresos\n" +
-                    "• Ideas\n" +
-                    "• Calendario\n" +
-                    "• Guiones\n" +
-                    "• Grabaciones de audio\n\n" +
-                    "Se guardará en la carpeta Descargas.")
+            .setMessage("¿Crear un archivo .c360backup con todos tus datos?\n\nIncluye:\n• Ingresos\n• Ideas\n• Calendario\n• Guiones\n• Grabaciones de audio")
             .setPositiveButton("Crear backup") { _, _ ->
                 val progressDialog = AlertDialog.Builder(requireContext())
                     .setTitle("Creando backup...")
-                    .setMessage("Por favor espera mientras se crea la copia de seguridad.")
+                    .setMessage("Espera por favor.")
                     .setCancelable(false)
                     .create()
                 progressDialog.show()
@@ -63,15 +59,12 @@ class AjustesFragment : Fragment() {
                     if (result != null) {
                         AlertDialog.Builder(requireContext())
                             .setTitle("Backup creado")
-                            .setMessage("Archivo guardado en:\n${result.absolutePath}\n\n" +
-                                    "Tamaño: ${result.length() / 1024} KB")
-                            .setPositiveButton("Compartir") { _, _ ->
-                                compartirArchivo(result)
-                            }
+                            .setMessage("Archivo: ${result.name}\nTamaño: ${result.length() / 1024} KB")
+                            .setPositiveButton("Compartir") { _, _ -> compartirArchivo(result) }
                             .setNegativeButton("OK", null)
                             .show()
                     } else {
-                        Toast.makeText(requireContext(), "Error al crear el backup", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "Error al crear backup", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -85,118 +78,133 @@ class AjustesFragment : Fragment() {
         if (backupFiles.isEmpty()) {
             AlertDialog.Builder(requireContext())
                 .setTitle("Restaurar backup")
-                .setMessage("No se encontraron archivos .c360backup en la carpeta Descargas.")
+                .setMessage("No se encontraron archivos .c360backup.")
                 .setPositiveButton("OK", null)
                 .show()
             return
         }
 
         val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-        val nombres = backupFiles.map { file ->
-            "${file.name} (${sdf.format(Date(file.lastModified()))}) - ${file.length() / 1024} KB"
-        }.toTypedArray()
+        val nombres = backupFiles.map { "${it.name} (${sdf.format(Date(it.lastModified))})" }.toTypedArray()
 
         AlertDialog.Builder(requireContext())
             .setTitle("Restaurar backup")
             .setItems(nombres) { _, which ->
                 val selectedFile = backupFiles[which]
                 AlertDialog.Builder(requireContext())
-                    .setTitle("Confirmar restauración")
-                    .setMessage("¿Restaurar desde:\n${selectedFile.name}?\n\n" +
-                            "ATENCIÓN: Esto reemplazará todos tus datos actuales.")
+                    .setTitle("Confirmar")
+                    .setMessage("¿Restaurar desde ${selectedFile.name}?")
                     .setPositiveButton("Restaurar") { _, _ ->
-                        val progressDialog = AlertDialog.Builder(requireContext())
-                            .setTitle("Restaurando...")
-                            .setMessage("Recuperando tus datos. Espera por favor.")
-                            .setCancelable(false)
-                            .create()
-                        progressDialog.show()
-
                         lifecycleScope.launch {
                             val success = withContext(Dispatchers.IO) {
                                 BackupManager.restoreBackup(requireContext(), selectedFile)
                             }
-                            progressDialog.dismiss()
-
                             if (success) {
-                                AlertDialog.Builder(requireContext())
-                                    .setTitle("Restauración completada")
-                                    .setMessage("Tus datos han sido restaurados correctamente.\n\nRecomendamos reiniciar la app.")
-                                    .setPositiveButton("OK", null)
-                                    .show()
+                                Toast.makeText(requireContext(), "Datos restaurados", Toast.LENGTH_SHORT).show()
                             } else {
-                                Toast.makeText(requireContext(), "Error al restaurar el backup", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(requireContext(), "Error al restaurar", Toast.LENGTH_SHORT).show()
                             }
                         }
                     }
                     .setNegativeButton("Cancelar", null)
                     .show()
             }
-            .setPositiveButton("Cancelar", null)
+            .setNegativeButton("Cancelar", null)
             .show()
     }
 
     private fun configurarTasa() {
-        Toast.makeText(requireContext(), "Las tasas se configuran en la sección de Ganancias", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), "Las tasas se configuran en Ganancias", Toast.LENGTH_SHORT).show()
     }
 
     private fun publicarContenido() {
         val opciones = arrayOf(
-            "📸 Compartir imagen de galería",
-            "🎬 Compartir video de galería",
-            "📄 Compartir archivo de Descargas",
-            "🔗 Compartir texto"
+            "📸 Publicar en Instagram",
+            "📘 Publicar en Facebook",
+            "💬 Compartir en WhatsApp",
+            "📤 Compartir con cualquier app"
         )
 
         AlertDialog.Builder(requireContext())
-            .setTitle("Compartir contenido")
+            .setTitle("Publicar contenido")
             .setItems(opciones) { _, which ->
-                when (which) {
-                    0 -> compartirDesdeGaleria("image/*", "Selecciona una imagen")
-                    1 -> compartirDesdeGaleria("video/*", "Selecciona un video")
-                    2 -> compartirDesdeDescargas()
-                    3 -> compartirTexto()
-                }
-            }
-            .show()
-    }
-
-    private fun compartirDesdeGaleria(tipo: String, titulo: String) {
-        try {
-            val intent = Intent(Intent.ACTION_PICK).apply {
-                type = tipo
-                putExtra(Intent.EXTRA_TITLE, titulo)
-            }
-            startActivityForResult(Intent.createChooser(intent, titulo), 500)
-        } catch (e: Exception) {
-            Toast.makeText(requireContext(), "No se pudo abrir la galería", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun compartirDesdeDescargas() {
-        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        val files = downloadsDir.listFiles { file ->
-            file.isFile && (file.name.endsWith(".mp4") || file.name.endsWith(".jpg") ||
-                    file.name.endsWith(".png") || file.name.endsWith(".mp3") ||
-                    file.name.endsWith(".m4a") || file.name.endsWith(".c360backup") ||
-                    file.name.endsWith(".csv"))
-        }?.sortedByDescending { it.lastModified() }
-
-        if (files.isNullOrEmpty()) {
-            Toast.makeText(requireContext(), "No hay archivos para compartir en Descargas", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val sdf = SimpleDateFormat("dd/MM HH:mm", Locale.getDefault())
-        val nombres = files.map { "${it.name} (${sdf.format(Date(it.lastModified()))})" }.toTypedArray()
-
-        AlertDialog.Builder(requireContext())
-            .setTitle("Compartir archivo")
-            .setItems(nombres) { _, which ->
-                compartirArchivo(files[which])
+                seleccionarImagen(which)
             }
             .setNegativeButton("Cancelar", null)
             .show()
+    }
+
+    private fun seleccionarImagen(plataforma: Int) {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, plataforma + 100)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (resultCode == android.app.Activity.RESULT_OK && data != null) {
+            val uri = data.data
+            if (uri != null) {
+                selectedImageUri = uri
+                when (requestCode) {
+                    100 -> publicarEnInstagram(uri)
+                    101 -> publicarEnFacebook(uri)
+                    102 -> compartirEnWhatsApp(uri)
+                    103 -> compartirConCualquierApp(uri)
+                }
+            }
+        }
+    }
+
+    private fun publicarEnInstagram(uri: Uri) {
+        try {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "image/*"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                setPackage("com.instagram.android")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Instagram no está instalado", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun publicarEnFacebook(uri: Uri) {
+        try {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "image/*"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                setPackage("com.facebook.katana")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Facebook no está instalado", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun compartirEnWhatsApp(uri: Uri) {
+        try {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "image/*"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                setPackage("com.whatsapp")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "WhatsApp no está instalado", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun compartirConCualquierApp(uri: Uri) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "image/*"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        startActivity(Intent.createChooser(intent, "Compartir con..."))
     }
 
     private fun compartirArchivo(file: File) {
@@ -207,56 +215,13 @@ class AjustesFragment : Fragment() {
                 file
             )
             val intent = Intent(Intent.ACTION_SEND).apply {
-                type = when {
-                    file.name.endsWith(".mp4") -> "video/mp4"
-                    file.name.endsWith(".jpg") || file.name.endsWith(".png") -> "image/*"
-                    file.name.endsWith(".mp3") || file.name.endsWith(".m4a") -> "audio/*"
-                    file.name.endsWith(".csv") -> "text/csv"
-                    else -> "*/*"
-                }
+                type = "*/*"
                 putExtra(Intent.EXTRA_STREAM, uri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            startActivity(Intent.createChooser(intent, "Compartir con..."))
+            startActivity(Intent.createChooser(intent, "Compartir backup"))
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Error al compartir: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun compartirTexto() {
-        val input = EditText(requireContext()).apply {
-            hint = "Escribe el texto a compartir"
-            minLines = 3
-        }
-        AlertDialog.Builder(requireContext())
-            .setTitle("Compartir texto")
-            .setView(input)
-            .setPositiveButton("Compartir") { _, _ ->
-                val texto = input.text.toString()
-                if (texto.isNotEmpty()) {
-                    val intent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, texto)
-                    }
-                    startActivity(Intent.createChooser(intent, "Compartir texto"))
-                }
-            }
-            .setNegativeButton("Cancelar", null)
-            .show()
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 500 && resultCode == android.app.Activity.RESULT_OK && data != null) {
-            val uri = data.data
-            if (uri != null) {
-                val intent = Intent(Intent.ACTION_SEND).apply {
-                    type = requireContext().contentResolver.getType(uri)
-                    putExtra(Intent.EXTRA_STREAM, uri)
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                }
-                startActivity(Intent.createChooser(intent, "Compartir con..."))
-            }
+            Toast.makeText(requireContext(), "Error al compartir", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -267,14 +232,14 @@ class AjustesFragment : Fragment() {
                     "Suite de creación de contenido para emprendedores cubanos.\n\n" +
                     "Funcionalidades:\n" +
                     "• Editor de diseño con IA\n" +
-                    "• Editor de video\n" +
-                    "• Teleprompter\n" +
+                    "• Editor de video con transiciones\n" +
+                    "• Teleprompter Pro\n" +
                     "• Estudio de audio\n" +
                     "• Banco de ideas\n" +
                     "• Calendario editorial\n" +
                     "• Gestor de ganancias\n" +
                     "• Backup y restauración\n" +
-                    "• Compartir contenido\n\n" +
+                    "• Publicación en redes\n\n" +
                     "Creado por invexXo TEAM\n" +
                     "© 2026 Todos los derechos reservados")
             .setPositiveButton("OK", null)
