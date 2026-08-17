@@ -1,5 +1,5 @@
 <resources>
-    <!-- Tema Claro -->
+    <!-- Tema principal -->
     <style name="Theme.Creador360" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">#8B5CF6</item>
         <item name="colorPrimaryVariant">#6D28D9</item>
@@ -14,6 +14,12 @@
         <item name="android:navigationBarColor">#FFFFFF</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="fontFamily">@font/poppins</item>
+    </style>
+
+    <!-- Tema para Splash Screen -->
+    <style name="Theme.Creador360.Splash" parent="Theme.Creador360">
         <item name="android:windowBackground">@color/canva_bg</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>
