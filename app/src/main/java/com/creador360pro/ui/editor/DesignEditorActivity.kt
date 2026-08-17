@@ -509,7 +509,7 @@ private fun loadTemplate(index: Int) {
     Toast.makeText(this, "Plantilla cargada", Toast.LENGTH_SHORT).show()
 }
 
-private fun loadPostInstagram() {
+    private fun loadPostInstagram() {
     canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 40f, y = 40f, width = 1000f, height = 1270f, color = "#F5F5F5"))
     canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 80f, y = 80f, width = 920f, height = 600f, color = "#8B5CF6"))
     canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 700f, y = 500f, width = 200f, height = 200f, color = "#EC4899"))
@@ -707,9 +707,45 @@ private fun loadEspecialDelDia() {
     canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 40f, y = 40f, width = 1000f, height = 1270f, color = "#FFF3E0"))
     canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 250f, y = 150f, width = 580f, height = 580f, color = "#FF9800"))
     canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "ESPECIAL", x = 200f, y = 850f, textSize = 70f, color = "#E65100", fontName = "Bebas Neue"))
-    canvasView.addLayer(
-   
-        private fun saveProject() {
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Solo hoy", x = 350f, y = 1000f, textSize = 45f, color = "#1A1A1A", fontName = "Poppins"))
+}
+
+private fun loadLogoCircular() {
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 200f, y = 200f, width = 680f, height = 680f, color = "#1A237E"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 340f, y = 340f, width = 400f, height = 400f, color = "#8B5CF6"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "LOGO", x = 350f, y = 500f, textSize = 80f, color = "#FFFFFF", fontName = "Bebas Neue"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 450f, y = 380f, width = 180f, height = 180f, color = "#EC4899"))
+}
+
+private fun loadLogoModerno() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 50f, y = 50f, width = 980f, height = 500f, color = "#FFFFFF"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 100f, y = 150f, width = 300f, height = 300f, color = "#8B5CF6"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "MARCA", x = 500f, y = 250f, textSize = 80f, color = "#1F2937", fontName = "Bebas Neue"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Tu eslogan aquí", x = 500f, y = 370f, textSize = 35f, color = "#6B7280", fontName = "Poppins"))
+}
+
+private fun loadDisenoAbstracto() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 0f, y = 0f, width = 1080f, height = 1350f, color = "#1A1A1A"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 100f, y = 200f, width = 400f, height = 400f, color = "#8B5CF6"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 500f, y = 400f, width = 300f, height = 300f, color = "#EC4899"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 300f, y = 700f, width = 500f, height = 6f, color = "#FFFFFF", rotation = 45f))
+}
+
+private fun loadDisenoGeometrico() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 0f, y = 0f, width = 1080f, height = 1350f, color = "#E8F5E9"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 100f, y = 100f, width = 400f, height = 400f, color = "#4CAF50", rotation = 45f))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 600f, y = 300f, width = 350f, height = 350f, color = "#2E7D32", rotation = 45f))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "GEOMETRÍA", x = 150f, y = 700f, textSize = 70f, color = "#1A1A1A", fontName = "Bebas Neue"))
+}
+
+private fun loadDisenoDegradado() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 0f, y = 0f, width = 1080f, height = 1350f, color = "#8B5CF6"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 200f, y = 200f, width = 600f, height = 600f, color = "#EC4899"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 100f, y = 900f, width = 880f, height = 6f, color = "#FFFFFF"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "DEGRADADO", x = 150f, y = 1000f, textSize = 70f, color = "#FFFFFF", fontName = "Bebas Neue"))
+}
+
+private fun saveProject() {
         val jsonCapas = canvasView.toJson()
         val projectName = "Diseño_${SimpleDateFormat("dd/MM HH:mm", Locale.getDefault()).format(Date())}"
         val project = DesignProject(
