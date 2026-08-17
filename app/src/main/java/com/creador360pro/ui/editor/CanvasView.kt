@@ -215,6 +215,13 @@ class CanvasView @JvmOverloads constructor(
         redoStack.clear()
     }
 
+    fun recycleBitmaps() {
+    layersList.forEach { layer ->
+        layer.bitmap?.recycle()
+        layer.bitmap = null
+    }
+    }
+    
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         canvas.drawColor(Color.parseColor("#F0F0F0"))
