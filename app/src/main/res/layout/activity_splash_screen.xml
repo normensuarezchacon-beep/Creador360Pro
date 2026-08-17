@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0D0D0D"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <!-- Nombre Creador360 -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/tvC"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="C"
+            android:textColor="#A78BFA"
+            android:textSize="42sp"
+            android:fontFamily="@font/grand_hotel" />
+
+        <TextView
+            android:id="@+id/tvR"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="r"
+            android:textColor="#8B5CF6"
+            android:textSize="42sp"
+            android:fontFamily="@font/grand_hotel" />
+
+        <TextView
+            android:id="@+id/tvE"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="e"
+            android:textColor="#7C3AED"
+            android:textSize="42sp"
+            android:fontFamily="@font/grand_hotel" />
+
+        <TextView
+            android:id="@+id/tvA"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="a"
+            android:textColor="#6D28D9"
+            android:textSize="42sp"
+            android:fontFamily="@font/grand_hotel" />
+
+        <TextView
+            android:id="@+id/tvD"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="d"
+            android:textColor="#5B21B6"
+            android:textSize="42sp"
+            android:fontFamily="@font/grand_hotel" />
+
+        <TextView
+            android:id="@+id/tvO"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="o"
+            android:textColor="#4C1D95"
+            android:textSize="42sp"
+            android:fontFamily="@font/grand_hotel" />
+
+        <TextView
+            android:id="@+id/tvR2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="r"
+            android:textColor="#A78BFA"
+            android:textSize="42sp"
+            android:fontFamily="@font/grand_hotel" />
+
+        <TextView
+            android:id="@+id/tv3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3"
+            android:textColor="#8B5CF6"
+            android:textSize="42sp"
+            android:fontFamily="@font/grand_hotel" />
+
+        <TextView
+            android:id="@+id/tv6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="6"
+            android:textColor="#7C3AED"
+            android:textSize="42sp"
+            android:fontFamily="@font/grand_hotel" />
+
+        <TextView
+            android:id="@+id/tv0"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textColor="#6D28D9"
+            android:textSize="42sp"
+            android:fontFamily="@font/grand_hotel" />
+    </LinearLayout>
+
+    <!-- Marca invexXo -->
+    <TextView
+        android:id="@+id/tvInvexXo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="invexXo"
+        android:textColor="#FFFFFF"
+        android:textSize="22sp"
+        android:fontFamily="@font/poppins"
+        android:letterSpacing="0.1" />
+</LinearLayout>
