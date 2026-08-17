@@ -14,7 +14,7 @@
         android:theme="@style/Theme.Creador360"
         android:supportsRtl="true">
 
-        <!-- Splash Screen como launcher -->
+        <!-- Splash Screen como LAUNCHER -->
         <activity
             android:name=".ui.splash.SplashScreenActivity"
             android:exported="true"
@@ -25,16 +25,33 @@
             </intent-filter>
         </activity>
 
-        <!-- MainActivity ya no es launcher -->
+        <!-- MainActivity SIN intent-filter -->
         <activity
             android:name=".ui.MainActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
-        <activity android:name=".ui.editor.DesignEditorActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".ui.editor.VideoEditorActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".ui.teleprompter.TeleprompterActivity" android:exported="false" />
-        <activity android:name=".ui.audio.AudioEditorActivity" android:exported="false" />
+        <activity
+            android:name=".ui.onboarding.OnboardingActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.editor.DesignEditorActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.editor.VideoEditorActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.teleprompter.TeleprompterActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.audio.AudioEditorActivity"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
