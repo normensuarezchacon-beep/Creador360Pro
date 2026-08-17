@@ -509,7 +509,207 @@ private fun loadTemplate(index: Int) {
     Toast.makeText(this, "Plantilla cargada", Toast.LENGTH_SHORT).show()
 }
 
-    private fun saveProject() {
+private fun loadPostInstagram() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 40f, y = 40f, width = 1000f, height = 1270f, color = "#F5F5F5"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 80f, y = 80f, width = 920f, height = 600f, color = "#8B5CF6"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 700f, y = 500f, width = 200f, height = 200f, color = "#EC4899"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Título Impactante", x = 80f, y = 750f, textSize = 60f, color = "#333333", fontName = "Montserrat"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Descripción breve del contenido\nque quieres compartir hoy", x = 80f, y = 870f, textSize = 35f, color = "#888888", fontName = "Open Sans"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 80f, y = 1150f, width = 400f, height = 5f, color = "#8B5CF6"))
+}
+
+private fun loadStoryInstagram() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 0f, y = 0f, width = 1080f, height = 1920f, color = "#1A1A1A"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 300f, y = 200f, width = 480f, height = 480f, color = "#8B5CF6"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 420f, y = 320f, width = 240f, height = 240f, color = "#EC4899"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "¡NUEVO!", x = 250f, y = 800f, textSize = 90f, color = "#FFFFFF", fontName = "Bebas Neue"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Contenido exclusivo\npara tus seguidores", x = 200f, y = 1000f, textSize = 45f, color = "#CCCCCC", fontName = "Poppins"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 300f, y = 1400f, width = 480f, height = 8f, color = "#8B5CF6"))
+}
+
+private fun loadPostMinimalista() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 60f, y = 60f, width = 960f, height = 1230f, color = "#FFFFFF"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 300f, y = 300f, width = 480f, height = 480f, color = "#F3F4F6"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Minimalismo", x = 150f, y = 900f, textSize = 70f, color = "#1F2937", fontName = "Playfair Display"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Menos es más", x = 150f, y = 1000f, textSize = 40f, color = "#6B7280", fontName = "Poppins"))
+}
+
+private fun loadPostColorido() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 40f, y = 40f, width = 1000f, height = 1270f, color = "#FFF3E0"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 100f, y = 150f, width = 300f, height = 300f, color = "#FF6D00"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 600f, y = 300f, width = 250f, height = 250f, color = "#EC4899"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 150f, y = 600f, width = 780f, height = 5f, color = "#FF6D00"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "COLOR", x = 200f, y = 750f, textSize = 100f, color = "#FF6D00", fontName = "Bebas Neue"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Diseño vibrante y creativo", x = 200f, y = 880f, textSize = 40f, color = "#333333", fontName = "Poppins"))
+}
+
+private fun loadQuoteDelDia() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 50f, y = 150f, width = 980f, height = 900f, color = "#F3E5F5"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "\u0022", x = 400f, y = 100f, textSize = 200f, color = "#8B5CF6", fontName = "Playfair Display"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "La creatividad\nno tiene límites", x = 150f, y = 450f, textSize = 60f, color = "#4A148C", fontName = "Playfair Display"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 350f, y = 900f, width = 380f, height = 5f, color = "#8B5CF6"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "- Autor desconocido", x = 350f, y = 950f, textSize = 30f, color = "#6B7280", fontName = "Poppins"))
+}
+
+private fun loadMiniaturaYouTube() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 0f, y = 0f, width = 1280f, height = 720f, color = "#1A1A1A"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 30f, y = 30f, width = 1220f, height = 660f, color = "#2A2A2A"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 700f, y = 50f, width = 500f, height = 300f, color = "#8B5CF6"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 850f, y = 200f, width = 150f, height = 150f, color = "#EC4899"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "¡TÍTULO!", x = 80f, y = 300f, textSize = 90f, color = "#FFFFFF", fontName = "Bebas Neue"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Subtítulo llamativo", x = 80f, y = 450f, textSize = 45f, color = "#CCCCCC", fontName = "Oswald"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 80f, y = 550f, width = 300f, height = 8f, color = "#FF0000"))
+}
+
+private fun loadMiniaturaGaming() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 0f, y = 0f, width = 1280f, height = 720f, color = "#0D0D0D"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 40f, y = 40f, width = 1200f, height = 640f, color = "#1A1A1A"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 600f, y = 100f, width = 600f, height = 400f, color = "#8B5CF6"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "GAMEPLAY", x = 80f, y = 250f, textSize = 100f, color = "#FFFFFF", fontName = "Bebas Neue"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "EPISODIO #1", x = 80f, y = 400f, textSize = 50f, color = "#8B5CF6", fontName = "Oswald"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 1100f, y = 50f, width = 120f, height = 120f, color = "#FF0000"))
+}
+
+private fun loadMiniaturaVlog() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 0f, y = 0f, width = 1280f, height = 720f, color = "#FFF3E0"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 700f, y = 100f, width = 400f, height = 400f, color = "#FF9800"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "VLOG", x = 80f, y = 250f, textSize = 100f, color = "#1A1A1A", fontName = "Bebas Neue"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Un día conmigo", x = 80f, y = 400f, textSize = 50f, color = "#FF6D00", fontName = "Poppins"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 80f, y = 550f, width = 400f, height = 6f, color = "#FF9800"))
+}
+
+private fun loadMiniaturaTutorial() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 0f, y = 0f, width = 1280f, height = 720f, color = "#E8F5E9"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 700f, y = 80f, width = 500f, height = 350f, color = "#4CAF50"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "TUTORIAL", x = 80f, y = 250f, textSize = 90f, color = "#1A1A1A", fontName = "Bebas Neue"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Paso a paso", x = 80f, y = 400f, textSize = 50f, color = "#2E7D32", fontName = "Poppins"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 80f, y = 550f, width = 500f, height = 6f, color = "#4CAF50"))
+}
+
+private fun loadMiniaturaTech() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 0f, y = 0f, width = 1280f, height = 720f, color = "#0D1B2A"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 700f, y = 100f, width = 500f, height = 300f, color = "#1B4965"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "TECH", x = 80f, y = 250f, textSize = 100f, color = "#FFFFFF", fontName = "Bebas Neue"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Review completo", x = 80f, y = 400f, textSize = 45f, color = "#5FA8D3", fontName = "Oswald"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 1100f, y = 500f, width = 130f, height = 130f, color = "#5FA8D3"))
+}
+
+private fun loadFlyerPromocional() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 40f, y = 40f, width = 1000f, height = 1270f, color = "#FFF3E0"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 100f, y = 100f, width = 880f, height = 400f, color = "#FF6D00"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "OFERTA", x = 200f, y = 300f, textSize = 100f, color = "#FFFFFF", fontName = "Bebas Neue"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "50%", x = 350f, y = 550f, textSize = 120f, color = "#FF6D00", fontName = "Bebas Neue"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Solo por tiempo limitado", x = 150f, y = 800f, textSize = 40f, color = "#333333", fontName = "Poppins"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 200f, y = 950f, width = 680f, height = 80f, color = "#1A1A1A"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "APROVECHA YA", x = 350f, y = 990f, textSize = 40f, color = "#FFFFFF", fontName = "Oswald"))
+}
+
+private fun loadOfertaFlash() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 50f, y = 50f, width = 980f, height = 500f, color = "#FFEB3B"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "¡FLASH!", x = 250f, y = 200f, textSize = 90f, color = "#000000", fontName = "Bebas Neue"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Solo por 24 horas", x = 250f, y = 350f, textSize = 40f, color = "#333333", fontName = "Poppins"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 800f, y = 100f, width = 150f, height = 150f, color = "#FF0000"))
+}
+
+private fun loadBannerHorizontal() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 0f, y = 0f, width = 1280f, height = 720f, color = "#263238"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 600f, y = 100f, width = 600f, height = 400f, color = "#8B5CF6"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "TU MARCA", x = 100f, y = 250f, textSize = 90f, color = "#FFFFFF", fontName = "Bebas Neue"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Eslogan impactante", x = 100f, y = 400f, textSize = 40f, color = "#B0BEC5", fontName = "Poppins"))
+}
+
+private fun loadTarjetaPresentacion() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 50f, y = 50f, width = 1180f, height = 620f, color = "#FFFFFF"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 50f, y = 50f, width = 1180f, height = 8f, color = "#8B5CF6"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Nombre Apellido", x = 100f, y = 250f, textSize = 60f, color = "#333333", fontName = "Poppins"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Diseñador Gráfico", x = 100f, y = 350f, textSize = 35f, color = "#6B7280", fontName = "Open Sans"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "📱 +53 5XXXXXXX\n✉️ correo@email.com", x = 700f, y = 250f, textSize = 35f, color = "#333333", fontName = "Poppins"))
+}
+
+private fun loadAnuncioNegocio() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 40f, y = 40f, width = 1000f, height = 1270f, color = "#E8F5E9"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 100f, y = 100f, width = 880f, height = 350f, color = "#2E7D32"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "TU NEGOCIO", x = 150f, y = 280f, textSize = 70f, color = "#FFFFFF", fontName = "Bebas Neue"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Productos de calidad", x = 150f, y = 600f, textSize = 45f, color = "#1A1A1A", fontName = "Poppins"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 150f, y = 800f, width = 780f, height = 200f, color = "#C8E6C9"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Precios especiales", x = 250f, y = 900f, textSize = 50f, color = "#2E7D32", fontName = "Oswald"))
+}
+
+private fun loadInvitacionFiesta() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 40f, y = 40f, width = 1000f, height = 1270f, color = "#FCE4EC"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 300f, y = 150f, width = 480f, height = 480f, color = "#EC4899"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "¡Te invitamos!", x = 200f, y = 750f, textSize = 70f, color = "#880E4F", fontName = "Playfair Display"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Sábado 15 • 8 PM", x = 250f, y = 900f, textSize = 45f, color = "#AD1457", fontName = "Poppins"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 300f, y = 1100f, width = 480f, height = 6f, color = "#EC4899"))
+}
+
+private fun loadFelicitacionCumpleanos() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 0f, y = 0f, width = 1080f, height = 1080f, color = "#E8F5E9"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 200f, y = 150f, width = 680f, height = 680f, color = "#FFD54F"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "¡Feliz\nCumpleaños!", x = 150f, y = 400f, textSize = 80f, color = "#2E7D32", fontName = "Playfair Display"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "🎉🎂🎈", x = 350f, y = 750f, textSize = 60f, color = "#1A1A1A", fontName = "Poppins"))
+}
+
+private fun loadEventoEspecial() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 50f, y = 50f, width = 980f, height = 1250f, color = "#E3F2FD"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 100f, y = 150f, width = 880f, height = 400f, color = "#1976D2"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "EVENTO\nESPECIAL", x = 150f, y = 300f, textSize = 80f, color = "#FFFFFF", fontName = "Bebas Neue"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Fecha y lugar", x = 150f, y = 700f, textSize = 50f, color = "#1A1A1A", fontName = "Poppins"))
+}
+
+private fun loadConcierto() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 0f, y = 0f, width = 1080f, height = 1350f, color = "#1A1A1A"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 250f, y = 150f, width = 580f, height = 580f, color = "#8B5CF6"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "CONCIERTO", x = 200f, y = 900f, textSize = 80f, color = "#FFFFFF", fontName = "Bebas Neue"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "🎸🎤🎹", x = 350f, y = 1050f, textSize = 60f, color = "#FFFFFF", fontName = "Poppins"))
+}
+
+private fun loadBoda() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 40f, y = 40f, width = 1000f, height = 1270f, color = "#FFF8E1"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Boda", x = 300f, y = 350f, textSize = 100f, color = "#8B5CF6", fontName = "Grand Hotel"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "María & José", x = 200f, y = 600f, textSize = 50f, color = "#6D28D9", fontName = "Playfair Display"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 300f, y = 900f, width = 480f, height = 4f, color = "#8B5CF6"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "15 de Febrero", x = 300f, y = 1000f, textSize = 40f, color = "#1A1A1A", fontName = "Poppins"))
+}
+
+private fun loadMenuRestaurante() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 0f, y = 0f, width = 1080f, height = 1350f, color = "#FFF8E1"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "MENÚ", x = 350f, y = 150f, textSize = 90f, color = "#3E2723", fontName = "Playfair Display"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 100f, y = 300f, width = 880f, height = 4f, color = "#3E2723"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Entrada ......... $5\nPlato fuerte ... $12\nPostre ......... $4", x = 150f, y = 450f, textSize = 45f, color = "#4E342E", fontName = "Montserrat"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 100f, y = 900f, width = 880f, height = 4f, color = "#3E2723"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Abierto todos los días", x = 250f, y = 1000f, textSize = 35f, color = "#6B7280", fontName = "Poppins"))
+}
+
+private fun loadMenuCafeteria() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 0f, y = 0f, width = 1080f, height = 1350f, color = "#EFEBE9"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 300f, y = 150f, width = 480f, height = 480f, color = "#8D6E63"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "CAFÉ", x = 350f, y = 750f, textSize = 80f, color = "#4E342E", fontName = "Playfair Display"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Americano .... $2\nCappuccino .. $3\nLatte ......... $3.5", x = 150f, y = 950f, textSize = 40f, color = "#4E342E", fontName = "Montserrat"))
+}
+
+private fun loadPromoComida() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 30f, y = 30f, width = 1020f, height = 1290f, color = "#FFEBEE"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 100f, y = 100f, width = 880f, height = 350f, color = "#D32F2F"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "¡2x1!", x = 250f, y = 300f, textSize = 100f, color = "#FFFFFF", fontName = "Bebas Neue"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "En todas las pizzas", x = 150f, y = 600f, textSize = 50f, color = "#1A1A1A", fontName = "Poppins"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "🍕🍕🍕", x = 350f, y = 800f, textSize = 80f, color = "#D32F2F", fontName = "Poppins"))
+}
+
+private fun loadCartaPrecios() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 50f, y = 50f, width = 980f, height = 1250f, color = "#FFFFFF"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "PRECIOS", x = 250f, y = 150f, textSize = 80f, color = "#1F2937", fontName = "Bebas Neue"))
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 100f, y = 280f, width = 880f, height = 3f, color = "#1F2937"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Servicio A ... $10\nServicio B ... $20\nServicio C ... $30", x = 150f, y = 400f, textSize = 45f, color = "#333333", fontName = "Montserrat"))
+}
+
+private fun loadEspecialDelDia() {
+    canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 40f, y = 40f, width = 1000f, height = 1270f, color = "#FFF3E0"))
+    canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 250f, y = 150f, width = 580f, height = 580f, color = "#FF9800"))
+    canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "ESPECIAL", x = 200f, y = 850f, textSize = 70f, color = "#E65100", fontName = "Bebas Neue"))
+    canvasView.addLayer(
+   
+        private fun saveProject() {
         val jsonCapas = canvasView.toJson()
         val projectName = "Diseño_${SimpleDateFormat("dd/MM HH:mm", Locale.getDefault()).format(Date())}"
         val project = DesignProject(
