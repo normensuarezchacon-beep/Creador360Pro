@@ -5,7 +5,6 @@
     android:orientation="vertical"
     android:background="#1A1A1A">
 
-    <!-- Barra superior -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="44dp"
@@ -33,16 +32,15 @@
             android:gravity="center" />
 
         <Button
-            android:id="@+id/btnImport"
+            android:id="@+id/btnAddClip"
             android:layout_width="50dp"
             android:layout_height="32dp"
-            android:text="Import"
+            android:text="+ Clip"
             android:textSize="10sp"
             android:backgroundTint="#8B5CF6"
             android:minWidth="0dp" />
     </LinearLayout>
 
-    <!-- Preview -->
     <VideoView
         android:id="@+id/videoPreview"
         android:layout_width="match_parent"
@@ -50,7 +48,21 @@
         android:layout_weight="1"
         android:background="#000000" />
 
-    <!-- Controles de reproducción -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="#1A1A1A"
+        android:scrollbars="none"
+        android:padding="4dp">
+
+        <LinearLayout
+            android:id="@+id/llClipThumbnails"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical" />
+    </HorizontalScrollView>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="40dp"
@@ -104,23 +116,6 @@
             android:gravity="center" />
     </LinearLayout>
 
-    <!-- Timeline de miniaturas -->
-    <HorizontalScrollView
-        android:layout_width="match_parent"
-        android:layout_height="70dp"
-        android:background="#1A1A1A"
-        android:scrollbars="none"
-        android:padding="4dp">
-
-        <LinearLayout
-            android:id="@+id/llTimeline"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:gravity="center_vertical" />
-    </HorizontalScrollView>
-
-    <!-- Barra de herramientas inferior -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -128,6 +123,16 @@
         android:gravity="center"
         android:orientation="horizontal"
         android:padding="8dp">
+
+        <Button
+            android:id="@+id/btnTransition"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:text="🔄 Transición"
+            android:textSize="11sp"
+            android:backgroundTint="#555555"
+            android:layout_marginEnd="4dp" />
 
         <Button
             android:id="@+id/btnTrim"
@@ -155,16 +160,6 @@
             android:layout_height="40dp"
             android:layout_weight="1"
             android:text="🔊"
-            android:textSize="11sp"
-            android:backgroundTint="#555555"
-            android:layout_marginEnd="4dp" />
-
-        <Button
-            android:id="@+id/btnFilter"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:text="🎨 Filtro"
             android:textSize="11sp"
             android:backgroundTint="#555555"
             android:layout_marginEnd="4dp" />
