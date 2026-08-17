@@ -4,7 +4,7 @@ import android.graphics.Color
 import android.hardware.Camera
 import android.os.Bundle
 import android.view.Gravity
-import android.view.MotionEvent
+import android.view.SurfaceView
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
@@ -34,7 +34,6 @@ class TeleprompterActivity : AppCompatActivity() {
     private var isMirrorMode = false
     private var currentScript: ScriptItem? = null
 
-    // Temporizador
     private var startTimeMs = 0L
     private var elapsedMs = 0L
     private var timerRunning = false
@@ -49,7 +48,7 @@ class TeleprompterActivity : AppCompatActivity() {
         seekBarTextSize = findViewById(R.id.seekBarTextSize)
         tvCurrentScript = findViewById(R.id.tvCurrentScript)
         tvTimer = findViewById(R.id.tvTimer)
-        cameraPreview = findViewById(R.id.cameraPreview)
+        cameraPreview = findViewById<SurfaceView>(R.id.cameraPreview)
 
         setupToolbar()
         setupSeekBars()
@@ -66,6 +65,9 @@ class TeleprompterActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnMirror).setOnClickListener { toggleMirror() }
         findViewById<Button>(R.id.btnCameraOverlay).setOnClickListener { toggleCameraOverlay() }
         findViewById<Button>(R.id.btnResetTimer).setOnClickListener { resetTimer() }
+        findViewById<Button>(R.id.btnStartStop).setOnClickListener { toggleScroll() }
+        findViewById<Button>(R.id.btnSpeedDown).setOnClickListener { adjustSpeed(-0.5f) }
+        findViewById<Button>(R.id.btnSpeedUp).setOnClickListener { adjustSpeed(0.5f) }
     }
 
     private fun setupSeekBars() {
