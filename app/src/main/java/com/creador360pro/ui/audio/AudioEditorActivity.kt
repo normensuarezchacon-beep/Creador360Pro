@@ -46,8 +46,14 @@ class AudioEditorActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnStop).setOnClickListener { stopAudio() }
         findViewById<Button>(R.id.btnNormalize).setOnClickListener { normalizeAudio() }
         findViewById<Button>(R.id.btnFade).setOnClickListener { applyFade() }
-        findViewById<Button>(R.id.btnTrimStart).setOnClickListener { trimStartSec = getCurrentPositionSec(); Toast.makeText(this, "Inicio: $trimStartSec s", Toast.LENGTH_SHORT).show() }
-        findViewById<Button>(R.id.btnTrimEnd).setOnClickListener { trimEndSec = getCurrentPositionSec(); Toast.makeText(this, "Fin: $trimEndSec s", Toast.LENGTH_SHORT).show() }
+        findViewById<Button>(R.id.btnTrimStart).setOnClickListener {
+            trimStartSec = getCurrentPositionSec()
+            Toast.makeText(this, "Inicio: $trimStartSec s", Toast.LENGTH_SHORT).show()
+        }
+        findViewById<Button>(R.id.btnTrimEnd).setOnClickListener {
+            trimEndSec = getCurrentPositionSec()
+            Toast.makeText(this, "Fin: $trimEndSec s", Toast.LENGTH_SHORT).show()
+        }
         findViewById<Button>(R.id.btnApplyTrim).setOnClickListener { applyTrim() }
         findViewById<Button>(R.id.btnExport).setOnClickListener { exportAudio() }
         findViewById<Button>(R.id.btnList).setOnClickListener { showRecordList() }
@@ -67,12 +73,19 @@ class AudioEditorActivity : AppCompatActivity() {
 
     private fun startRecording() {
         val sampleRate = 44100
-        val bufferSize = AudioRecord.getMinBufferSize(sampleRate,
+        val bufferSize = AudioRecord.getMinBufferSize(
+            sampleRate,
             AudioFormat.CHANNEL_IN_MONO,
-            AudioFormat.ENCODING_PCM_16BIT)
+            AudioFormat.ENCODING_PCM_16BIT
+        )
 
-        audioRecord = AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate,
-            AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, bufferSize)
+        audioRecord = AudioRecord(
+            MediaRecorder.AudioSource.MIC,
+            sampleRate,
+            AudioFormat.CHANNEL_IN_MONO,
+            AudioFormat.ENCODING_PCM_16BIT,
+            bufferSize
+        )
 
         audioFile = File(externalCacheDir, "audio_${System.currentTimeMillis()}.wav")
 
@@ -80,6 +93,7 @@ class AudioEditorActivity : AppCompatActivity() {
         isRecording = true
         isPaused = false
         findViewById<Button>(R.id.btnRecord).text = "⏹ Detener"
+        findViewById<Button>(R.id.btnPause).text = "⏸ Pausa"
         Toast.makeText(this, "Grabando...", Toast.LENGTH_SHORT).show()
 
         Thread {
@@ -95,7 +109,6 @@ class AudioEditorActivity : AppCompatActivity() {
                     Thread.sleep(100)
                 }
             }
-            // Guardar WAV
             try {
                 val pcmBytes = pcmData.toByteArray()
                 writeWavFile(audioFile!!, pcmBytes, sampleRate)
@@ -113,7 +126,7 @@ class AudioEditorActivity : AppCompatActivity() {
     private fun pauseResumeRecording() {
         if (isRecording) {
             isPaused = !isPaused
-            findViewById<Button>(R.id.btnPause).text = if (isPaused) "▶" else "⏸"
+            findViewById<Button>(R.id.btnPause).text = if (isPaused) "▶ Reanudar" else "⏸ Pausa"
             Toast.makeText(this, if (isPaused) "Grabación pausada" else "Grabación reanudada", Toast.LENGTH_SHORT).show()
         }
     }
@@ -221,7 +234,7 @@ class AudioEditorActivity : AppCompatActivity() {
         }
         val result = readWavFile(file) ?: return
         val (sampleRate, samples) = result
-        val fadeSamples = (sampleRate * 1.0).toInt() // 1 segundo de fade
+        val fadeSamples = (sampleRate * 1.0).toInt()
         for (i in 0 until fadeSamples) {
             val fadeIn = i.toFloat() / fadeSamples
             val fadeOut = 1f - (i.toFloat() / fadeSamples)
@@ -358,7 +371,7 @@ class AudioEditorActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        mediaRecorder?.release()
+        audioRecord?.release()
         mediaPlayer?.release()
     }
 }
