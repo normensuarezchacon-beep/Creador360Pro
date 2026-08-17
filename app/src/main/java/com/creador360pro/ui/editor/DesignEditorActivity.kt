@@ -435,45 +435,79 @@ class DesignEditorActivity : AppCompatActivity() {
     }
 
     private fun showTemplates() {
-        val templates = arrayOf(
-            "Post Instagram", "Story Instagram", "Miniatura YouTube", "Flyer promocional",
-            "Felicitación", "Cita motivacional", "Logo circular", "Banner horizontal",
-            "Menú restaurante", "Invitación evento", "Oferta flash", "Tarjeta presentación"
-        )
-        AlertDialog.Builder(this)
-            .setTitle("Cargar plantilla")
-            .setItems(templates) { _, which -> loadTemplate(which) }
-            .show()
+    val categorias = arrayOf("📱 Redes Sociales", "🎬 YouTube", "📢 Negocios", "🎉 Eventos", "🍽️ Restaurantes", "🎨 Diseño")
+    AlertDialog.Builder(this)
+        .setTitle("Cargar plantilla (30 diseños)")
+        .setItems(categorias) { _, catIndex ->
+            showTemplatesByCategory(catIndex)
+        }
+        .setNegativeButton("Cancelar", null)
+        .show()
+}
+
+private fun showTemplatesByCategory(category: Int) {
+    val templates = when (category) {
+        0 -> arrayOf("Post Instagram 4:5", "Story Instagram 9:16", "Post Minimalista", "Post Colorido", "Quote del Día")
+        1 -> arrayOf("Miniatura YouTube 16:9", "Miniatura Gaming", "Miniatura Vlog", "Miniatura Tutorial", "Miniatura Tech")
+        2 -> arrayOf("Flyer Promocional", "Oferta Flash", "Banner Horizontal", "Tarjeta Presentación", "Anuncio Negocio")
+        3 -> arrayOf("Invitación Fiesta", "Felicitación Cumpleaños", "Evento Especial", "Concierto", "Boda")
+        4 -> arrayOf("Menú Restaurante", "Menú Cafetería", "Promo Comida", "Carta de Precios", "Especial del Día")
+        5 -> arrayOf("Logo Circular", "Logo Moderno", "Diseño Abstracto", "Diseño Geométrico", "Diseño Degradado")
+        else -> arrayOf("Post Instagram 4:5", "Story Instagram 9:16", "Miniatura YouTube 16:9", "Flyer Promocional", "Menú Restaurante")
     }
 
-    private fun loadTemplate(index: Int) {
-        canvasView.clearLayers()
-        canvasView.addLayer(DesignLayer(type = LayerType.BACKGROUND, color = "#FFFFFF"))
-        when (index) {
-            0 -> {
-                canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 50f, y = 50f, width = 980f, height = 980f, color = "#F5F5F5"))
-                canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Tu título aquí", x = 100f, y = 200f, textSize = 60f, color = "#333333", fontName = "Montserrat"))
-                canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Subtítulo", x = 100f, y = 300f, textSize = 35f, color = "#888888", fontName = "Open Sans"))
-            }
-            1 -> {
-                canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 0f, y = 0f, width = 1080f, height = 1920f, color = "#8B5CF6"))
-                canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 340f, y = 500f, width = 400f, height = 400f, color = "#FFFFFF"))
-                canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "¡Nuevo!", x = 300f, y = 1100f, textSize = 70f, color = "#FFFFFF", fontName = "Bebas Neue"))
-            }
-            2 -> {
-                canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 0f, y = 0f, width = 1280f, height = 720f, color = "#1A1A1A"))
-                canvasView.addLayer(DesignLayer(type = LayerType.RECTANGLE, x = 40f, y = 40f, width = 1200f, height = 640f, color = "#2A2A2A"))
-                canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "TÍTULO DEL VIDEO", x = 100f, y = 300f, textSize = 80f, color = "#FFFFFF", fontName = "Oswald"))
-                canvasView.addLayer(DesignLayer(type = LayerType.CIRCLE, x = 1000f, y = 500f, width = 150f, height = 150f, color = "#FF0000"))
-            }
-            else -> {
-                canvasView.addLayer(DesignLayer(type = LayerType.TEXT, text = "Nueva plantilla", x = 200f, y = 400f, textSize = 50f, color = "#333333", fontName = "Montserrat"))
-            }
+    AlertDialog.Builder(this)
+        .setTitle("Plantillas disponibles")
+        .setItems(templates) { _, templateIndex ->
+            val templateId = category * 5 + templateIndex
+            loadTemplate(templateId)
         }
-        updateLayersList()
-        canvasView.invalidate()
-        Toast.makeText(this, "Plantilla cargada", Toast.LENGTH_SHORT).show()
+        .setNegativeButton("Cancelar", null)
+        .show()
+}
+
+private fun loadTemplate(index: Int) {
+    canvasView.clearLayers()
+    canvasView.addLayer(DesignLayer(type = LayerType.BACKGROUND, color = "#FFFFFF"))
+
+    when (index) {
+        0 -> loadPostInstagram()
+        1 -> loadStoryInstagram()
+        2 -> loadPostMinimalista()
+        3 -> loadPostColorido()
+        4 -> loadQuoteDelDia()
+        5 -> loadMiniaturaYouTube()
+        6 -> loadMiniaturaGaming()
+        7 -> loadMiniaturaVlog()
+        8 -> loadMiniaturaTutorial()
+        9 -> loadMiniaturaTech()
+        10 -> loadFlyerPromocional()
+        11 -> loadOfertaFlash()
+        12 -> loadBannerHorizontal()
+        13 -> loadTarjetaPresentacion()
+        14 -> loadAnuncioNegocio()
+        15 -> loadInvitacionFiesta()
+        16 -> loadFelicitacionCumpleanos()
+        17 -> loadEventoEspecial()
+        18 -> loadConcierto()
+        19 -> loadBoda()
+        20 -> loadMenuRestaurante()
+        21 -> loadMenuCafeteria()
+        22 -> loadPromoComida()
+        23 -> loadCartaPrecios()
+        24 -> loadEspecialDelDia()
+        25 -> loadLogoCircular()
+        26 -> loadLogoModerno()
+        27 -> loadDisenoAbstracto()
+        28 -> loadDisenoGeometrico()
+        29 -> loadDisenoDegradado()
+        else -> loadPostInstagram()
     }
+
+    updateLayersList()
+    canvasView.invalidate()
+    Toast.makeText(this, "Plantilla cargada", Toast.LENGTH_SHORT).show()
+}
 
     private fun saveProject() {
         val jsonCapas = canvasView.toJson()
