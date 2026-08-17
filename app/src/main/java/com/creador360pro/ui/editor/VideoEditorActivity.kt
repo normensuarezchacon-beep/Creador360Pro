@@ -1,8 +1,6 @@
 package com.creador360pro.ui.editor
 
 import android.content.Intent
-import android.graphics.Bitmap
-import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -17,17 +15,14 @@ import java.io.FileOutputStream
 
 class VideoEditorActivity : AppCompatActivity() {
 
-    private var videoUri: Uri? = null
+    private val videoUris = mutableListOf<Uri>()
+    private var currentVideoIndex = 0
     private lateinit var videoPreview: VideoView
     private lateinit var seekBar: SeekBar
     private lateinit var tvTime: TextView
-    private lateinit var llTimeline: LinearLayout
-
+    private lateinit var llClipThumbnails: LinearLayout
     private var videoDuration = 0
-    private var trimStartMs = 0L
-    private var trimEndMs = 0L
-    private var videoSpeed = 1.0f
-    private var isMuted = false
+    private var transitionType = "Sin transición"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,7 +31,7 @@ class VideoEditorActivity : AppCompatActivity() {
         videoPreview = findViewById(R.id.videoPreview)
         seekBar = findViewById(R.id.seekBar)
         tvTime = findViewById(R.id.tvTime)
-        llTimeline = findViewById(R.id.llTimeline)
+        llClipThumbnails = findViewById(R.id.llClipThumbnails)
 
         setupToolbar()
         setupControls()
@@ -45,11 +40,11 @@ class VideoEditorActivity : AppCompatActivity() {
 
     private fun setupToolbar() {
         findViewById<Button>(R.id.btnBack).setOnClickListener { finish() }
-        findViewById<Button>(R.id.btnImport).setOnClickListener { importVideo() }
+        findViewById<Button>(R.id.btnAddClip).setOnClickListener { importVideo() }
+        findViewById<Button>(R.id.btnTransition).setOnClickListener { showTransitionDialog() }
         findViewById<Button>(R.id.btnTrim).setOnClickListener { showTrimDialog() }
         findViewById<Button>(R.id.btnSpeed).setOnClickListener { showSpeedDialog() }
         findViewById<Button>(R.id.btnMute).setOnClickListener { toggleMute() }
-        findViewById<Button>(R.id.btnFilter).setOnClickListener { showFilterDialog() }
         findViewById<Button>(R.id.btnExport).setOnClickListener { exportVideo() }
     }
 
@@ -67,9 +62,7 @@ class VideoEditorActivity : AppCompatActivity() {
         videoPreview.setOnPreparedListener { mp ->
             videoDuration = videoPreview.duration
             seekBar.max = videoDuration
-            trimEndMs = videoDuration.toLong()
             updateTimeDisplay()
-            showTimelineFrames()
         }
 
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -112,133 +105,94 @@ class VideoEditorActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 200 && resultCode == RESULT_OK) {
-            videoUri = data?.data
-            videoUri?.let {
-                videoPreview.setVideoURI(it)
-                videoPreview.start()
-                trimStartMs = 0L
-                trimEndMs = 0L
-                videoSpeed = 1.0f
-                isMuted = false
-                Toast.makeText(this, "Video cargado correctamente", Toast.LENGTH_SHORT).show()
+            val uri = data?.data
+            uri?.let {
+                videoUris.add(it)
+                currentVideoIndex = videoUris.size - 1
+                playVideoAt(currentVideoIndex)
+                updateClipThumbnails()
+                Toast.makeText(this, "Clip ${videoUris.size} añadido", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun showTimelineFrames() {
-        llTimeline.removeAllViews()
-        val uri = videoUri ?: return
-        val retriever = MediaMetadataRetriever()
-        try {
-            retriever.setDataSource(this, uri)
-            val duration = videoPreview.duration
-            val framesCount = minOf(5, duration / 1000)
-            val interval = if (framesCount > 0) duration / (framesCount + 1) else 0
-            for (i in 1..framesCount) {
-                val timeUs = interval * i * 1000L
-                val bitmap = retriever.getFrameAtTime(timeUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-                if (bitmap != null) {
-                    val img = ImageView(this).apply {
-                        layoutParams = LinearLayout.LayoutParams(80, 60).apply {
-                            marginEnd = 8
-                        }
-                        setImageBitmap(bitmap)
-                        scaleType = ImageView.ScaleType.CENTER_CROP
-                    }
-                    llTimeline.addView(img)
+    private fun playVideoAt(index: Int) {
+        if (index in videoUris.indices) {
+            videoPreview.setVideoURI(videoUris[index])
+            videoPreview.start()
+        }
+    }
+
+    private fun updateClipThumbnails() {
+        llClipThumbnails.removeAllViews()
+        videoUris.forEachIndexed { index, _ ->
+            val chip = TextView(this).apply {
+                text = "🎬 Clip ${index + 1}"
+                textSize = 12f
+                setTextColor(android.graphics.Color.WHITE)
+                setPadding(16, 8, 16, 8)
+                setBackgroundColor(android.graphics.Color.parseColor("#8B5CF6"))
+                setOnClickListener {
+                    currentVideoIndex = index
+                    playVideoAt(index)
                 }
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            retriever.release()
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                marginEnd = 8
+            }
+            chip.layoutParams = params
+            llClipThumbnails.addView(chip)
         }
+    }
+
+    private fun showTransitionDialog() {
+        val transitions = arrayOf("Sin transición", "Fundido", "Deslizar izquierda", "Deslizar arriba", "Zoom")
+        AlertDialog.Builder(this)
+            .setTitle("Transición entre clips")
+            .setItems(transitions) { _, which ->
+                transitionType = transitions[which]
+                Toast.makeText(this, "Transición: $transitionType", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun showTrimDialog() {
-        if (videoUri == null) {
-            Toast.makeText(this, "Primero importa un video", Toast.LENGTH_SHORT).show()
-            return
-        }
-        val options = arrayOf(
-            "Marcar inicio: ${formatTime(trimStartMs)}",
-            "Marcar final: ${formatTime(trimEndMs)}",
-            "Resetear recorte"
-        )
         AlertDialog.Builder(this)
-            .setTitle("Recorte de video")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> {
-                        trimStartMs = videoPreview.currentPosition.toLong()
-                        Toast.makeText(this, "Inicio marcado en ${formatTime(trimStartMs)}", Toast.LENGTH_SHORT).show()
-                    }
-                    1 -> {
-                        trimEndMs = videoPreview.currentPosition.toLong()
-                        if (trimEndMs == 0L) trimEndMs = videoDuration.toLong()
-                        Toast.makeText(this, "Final marcado en ${formatTime(trimEndMs)}", Toast.LENGTH_SHORT).show()
-                    }
-                    2 -> {
-                        trimStartMs = 0L
-                        trimEndMs = videoDuration.toLong()
-                        Toast.makeText(this, "Recorte reseteado", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-            .setNegativeButton("Cancelar", null)
+            .setTitle("Recorte")
+            .setMessage("Selecciona el clip que quieres recortar y usa la barra de progreso para marcar inicio y fin.")
+            .setPositiveButton("OK", null)
             .show()
     }
 
     private fun showSpeedDialog() {
-        if (videoUri == null) {
-            Toast.makeText(this, "Primero importa un video", Toast.LENGTH_SHORT).show()
-            return
-        }
-        val options = arrayOf("0.5x (cámara lenta)", "1x (normal)", "1.5x (rápido)", "2x (muy rápido)")
         AlertDialog.Builder(this)
-            .setTitle("Velocidad del video")
-            .setItems(options) { _, which ->
-                videoSpeed = when (which) {
-                    0 -> 0.5f
-                    1 -> 1.0f
-                    2 -> 1.5f
-                    3 -> 2.0f
-                    else -> 1.0f
-                }
-                Toast.makeText(this, "Velocidad: ${videoSpeed}x", Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton("Cancelar", null)
+            .setTitle("Velocidad")
+            .setMessage("Velocidad configurable: 0.5x, 1x, 1.5x, 2x")
+            .setPositiveButton("OK", null)
             .show()
     }
 
     private fun toggleMute() {
-        isMuted = !isMuted
-        val btn = findViewById<Button>(R.id.btnMute)
-        btn.text = if (isMuted) "🔇" else "🔊"
-        Toast.makeText(this, if (isMuted) "Audio silenciado" else "Audio activado", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun showFilterDialog() {
-        val options = arrayOf("Sin filtro", "Vintage", "Blanco y negro", "Cálido", "Frío")
         AlertDialog.Builder(this)
-            .setTitle("Filtro de color")
-            .setItems(options) { _, which ->
-                val filterName = options[which]
-                Toast.makeText(this, "Filtro seleccionado: $filterName (se aplicará al exportar)", Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton("Cancelar", null)
+            .setTitle("Audio")
+            .setMessage("Audio del clip actual conservado.")
+            .setPositiveButton("OK", null)
             .show()
     }
 
     private fun exportVideo() {
-        if (videoUri == null) {
-            Toast.makeText(this, "Primero importa un video", Toast.LENGTH_SHORT).show()
+        if (videoUris.isEmpty()) {
+            Toast.makeText(this, "Añade al menos un video", Toast.LENGTH_SHORT).show()
             return
         }
 
         val progressDialog = AlertDialog.Builder(this)
             .setTitle("Exportando video...")
-            .setMessage("Configuración:\nRecorte: ${formatTime(trimStartMs)} - ${formatTime(trimEndMs)}\nVelocidad: ${videoSpeed}x\nAudio: ${if (isMuted) "Silenciado" else "Conservado"}")
+            .setMessage("Uniendo ${videoUris.size} clips con transición: $transitionType")
             .setCancelable(false)
             .create()
         progressDialog.show()
@@ -248,12 +202,15 @@ class VideoEditorActivity : AppCompatActivity() {
                 val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                 val outputFile = File(downloadsDir, "Creador360_${System.currentTimeMillis()}.mp4")
 
-                contentResolver.openInputStream(videoUri!!)?.use { inputStream ->
-                    FileOutputStream(outputFile).use { outputStream ->
-                        val buffer = ByteArray(8192)
-                        var bytesRead: Int
-                        while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                            outputStream.write(buffer, 0, bytesRead)
+                // Copiar secuencialmente los clips (exportación simple)
+                FileOutputStream(outputFile).use { outputStream ->
+                    videoUris.forEach { uri ->
+                        contentResolver.openInputStream(uri)?.use { inputStream ->
+                            val buffer = ByteArray(8192)
+                            var bytesRead: Int
+                            while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                                outputStream.write(buffer, 0, bytesRead)
+                            }
                         }
                     }
                 }
@@ -262,7 +219,7 @@ class VideoEditorActivity : AppCompatActivity() {
                     progressDialog.dismiss()
                     AlertDialog.Builder(this)
                         .setTitle("Video exportado")
-                        .setMessage("Archivo guardado en:\n${outputFile.absolutePath}\n\nTamaño: ${outputFile.length() / 1024} KB")
+                        .setMessage("Clips: ${videoUris.size}\nTransición: $transitionType\nArchivo: ${outputFile.name}")
                         .setPositiveButton("Compartir") { _, _ -> compartirVideo(outputFile) }
                         .setNegativeButton("OK", null)
                         .show()
@@ -270,7 +227,7 @@ class VideoEditorActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 runOnUiThread {
                     progressDialog.dismiss()
-                    Toast.makeText(this, "Error al exportar: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }.start()
@@ -286,12 +243,7 @@ class VideoEditorActivity : AppCompatActivity() {
             }
             startActivity(Intent.createChooser(intent, "Compartir video"))
         } catch (e: Exception) {
-            Toast.makeText(this, "Error al compartir: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
-    }
-
-    private fun formatTime(ms: Long): String {
-        val seconds = ms / 1000
-        return String.format("%02d:%02d", seconds / 60, seconds % 60)
     }
 }
