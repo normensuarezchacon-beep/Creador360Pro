@@ -1,120 +1,171 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FAFAFA"
-    android:orientation="vertical">
+    android:background="#FAFAFA">
 
-    <!-- Tarjeta de resumen con gradiente -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/header_gradient"
         android:orientation="vertical"
-        android:padding="20dp"
-        android:layout_margin="12dp"
-        android:elevation="4dp">
+        android:padding="16dp">
 
-        <TextView
-            android:id="@+id/tvResumen"
+        <!-- Resumen -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Total: $0 CUP"
-            android:textColor="#FFFFFF"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:lineSpacingExtra="6dp" />
+            android:background="@drawable/header_gradient"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:layout_marginBottom="12dp">
 
+            <TextView
+                android:id="@+id/tvResumen"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Total: $0 cup"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvMeta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Sin meta establecida"
+                android:textColor="#E8D5F5"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- Navegación de mes -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
+
+            <Button
+                android:id="@+id/btnAnterior"
+                android:layout_width="40dp"
+                android:layout_height="36dp"
+                android:text="←"
+                android:backgroundTint="#555555"
+                android:minWidth="0dp" />
+
+            <TextView
+                android:id="@+id/tvMes"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Mes"
+                android:textColor="#333333"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnSiguiente"
+                android:layout_width="40dp"
+                android:layout_height="36dp"
+                android:text="→"
+                android:backgroundTint="#555555"
+                android:minWidth="0dp" />
+
+            <Button
+                android:id="@+id/btnMeta"
+                android:layout_width="50dp"
+                android:layout_height="36dp"
+                android:text="🎯"
+                android:backgroundTint="#FF9800"
+                android:minWidth="0dp"
+                android:layout_marginStart="4dp" />
+        </LinearLayout>
+
+        <!-- Botones de acción -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
+
+            <Button
+                android:id="@+id/btnAgregarIngreso"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:text="+ Ingreso"
+                android:textSize="13sp"
+                android:backgroundTint="#8B5CF6"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btnTasaCambio"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:text="💱 Tasas"
+                android:textSize="13sp"
+                android:backgroundTint="#FF9800"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btnExportarCSV"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:text="📄 CSV"
+                android:textSize="13sp"
+                android:backgroundTint="#555555" />
+        </LinearLayout>
+
+        <!-- Gráfico de barras -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Ingresos totales convertidos a CUP"
-            android:textColor="#E8D5F5"
-            android:textSize="12sp"
-            android:layout_marginTop="4dp" />
-    </LinearLayout>
-
-    <!-- Botones de acción -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingHorizontal="12dp"
-        android:layout_marginBottom="12dp">
-
-        <Button
-            android:id="@+id/btnAgregarIngreso"
-            android:layout_width="0dp"
-            android:layout_height="44dp"
-            android:layout_weight="1"
-            android:text="+ Ingreso"
-            android:textSize="13sp"
+            android:text="📊 Ingresos por fuente"
+            android:textColor="#333333"
+            android:textSize="14sp"
             android:textStyle="bold"
-            android:backgroundTint="#8B5CF6"
-            android:layout_marginEnd="6dp"
-            android:elevation="2dp" />
+            android:layout_marginBottom="8dp" />
 
-        <Button
-            android:id="@+id/btnVerGrafico"
-            android:layout_width="0dp"
-            android:layout_height="44dp"
-            android:layout_weight="1"
-            android:text="📊 Gráfico"
-            android:textSize="13sp"
-            android:backgroundTint="#4F46E5"
-            android:layout_marginEnd="6dp"
-            android:elevation="2dp" />
+        <com.github.mikephil.charting.charts.BarChart
+            android:id="@+id/barChart"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginBottom="12dp" />
 
-        <Button
-            android:id="@+id/btnExportarCSV"
-            android:layout_width="0dp"
-            android:layout_height="44dp"
-            android:layout_weight="1"
-            android:text="📄 CSV"
-            android:textSize="13sp"
-            android:backgroundTint="#555555"
-            android:elevation="2dp" />
-    </LinearLayout>
+        <!-- Gráfico de torta -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📈 Distribución por moneda"
+            android:textColor="#333333"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingHorizontal="12dp"
-        android:layout_marginBottom="12dp">
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/pieChart"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:layout_marginBottom="12dp" />
 
-        <Button
-            android:id="@+id/btnTasaCambio"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:text="💱 Tasas"
-            android:textSize="12sp"
-            android:backgroundTint="#FF9800"
-            android:layout_marginEnd="6dp" />
-    </LinearLayout>
-
-    <!-- Lista de ingresos -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Últimos ingresos"
-        android:textColor="#333333"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:paddingHorizontal="16dp"
-        android:paddingBottom="8dp" />
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        <!-- Lista de ingresos -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Últimos ingresos"
+            android:textColor="#333333"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
 
         <LinearLayout
             android:id="@+id/llIngresos"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingHorizontal="12dp" />
-    </ScrollView>
-</LinearLayout>
+            android:orientation="vertical" />
+    </LinearLayout>
+</ScrollView>
