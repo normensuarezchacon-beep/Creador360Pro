@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -20,12 +21,41 @@
         <Button android:id="@+id/btnExportTop" android:layout_width="50dp" android:layout_height="32dp" android:text="Guardar" android:textSize="10sp" android:backgroundTint="#8B5CF6" android:minWidth="0dp" android:layout_marginStart="4dp" />
     </LinearLayout>
 
-    <com.google.android.exoplayer2.ui.PlayerView
-        android:id="@+id/playerView"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="#000000" />
+        android:background="#000000">
+
+        <com.google.android.exoplayer2.ui.PlayerView
+            android:id="@+id/playerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#000000" />
+
+        <TextView
+            android:id="@+id/textOverlay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text=""
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/stickerOverlay"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+
+        <View
+            android:id="@+id/filterOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent" />
+    </FrameLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -46,6 +76,22 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical" />
         </HorizontalScrollView>
+
+        <SeekBar
+            android:id="@+id/seekBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="8dp"
+            android:progressTint="#8B5CF6"
+            android:thumbTint="#FFFFFF" />
+
+        <com.google.android.material.slider.RangeSlider
+            android:id="@+id/rangeSlider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:stepSize="100"
+            android:values="@array/initial_slider_values"
+            app:labelBehavior="gone" />
 
         <LinearLayout
             android:layout_width="match_parent"
