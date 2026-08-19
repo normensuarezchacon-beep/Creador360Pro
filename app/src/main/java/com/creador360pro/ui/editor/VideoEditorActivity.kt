@@ -3,12 +3,15 @@ package com.creador360pro.ui.editor
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.Typeface
 import android.media.MediaMetadataRetriever
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.view.Gravity
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -17,6 +20,7 @@ import com.creador360pro.R
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.PlaybackParameters
+import com.google.android.exoplayer2.source.ConcatenatingMediaSource
 import com.google.android.exoplayer2.ui.PlayerView
 import java.io.File
 import java.io.FileOutputStream
@@ -28,11 +32,26 @@ class VideoEditorActivity : AppCompatActivity() {
     private lateinit var playerView: PlayerView
     private lateinit var player: ExoPlayer
     private lateinit var llTimeline: LinearLayout
+    private lateinit var seekBar: SeekBar
+    private lateinit var textOverlay: TextView
+    private lateinit var stickerOverlay: ImageView
+    private lateinit var filterOverlay: View
+    private lateinit var btnMute: Button
+    private lateinit var rangeSlider: com.google.android.material.slider.RangeSlider
+
     private var transitionType = "Sin transición"
+    private var transitionDuration = 500L
     private var currentSpeed = 1.0f
     private var isMuted = false
     private var currentFilter = "Normal"
     private var selectedMusic = "Sin música"
+    private var currentCanvas = "9:16"
+    private var musicPlayer: MediaPlayer? = null
+    private var musicVolume = 0.3f
+
+    // Capas de texto
+    private val textLayers = mutableListOf<Pair<TextView, Long>>()
+    private val stickerLayers = mutableListOf<Pair<ImageView, Long>>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,12 +59,19 @@ class VideoEditorActivity : AppCompatActivity() {
 
         playerView = findViewById(R.id.playerView)
         llTimeline = findViewById(R.id.llTimeline)
+        seekBar = findViewById(R.id.seekBar)
+        textOverlay = findViewById(R.id.textOverlay)
+        stickerOverlay = findViewById(R.id.stickerOverlay)
+        filterOverlay = findViewById(R.id.filterOverlay)
+        btnMute = findViewById(R.id.btnMute)
+        rangeSlider = findViewById(R.id.rangeSlider)
 
         player = ExoPlayer.Builder(this).build()
         playerView.player = player
 
         setupToolbar()
         setupTabs()
+        setupRangeSlider()
         importVideo()
     }
 
@@ -69,6 +95,19 @@ class VideoEditorActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnTabAdjust).setOnClickListener { showAdjustPanel() }
     }
 
+    private fun setupRangeSlider() {
+        rangeSlider.addOnChangeListener { slider, value, fromUser ->
+            if (fromUser) {
+                val start = slider.values[0]
+                val end = slider.values[1]
+                // Guardar recorte del clip actual
+                trimStartMs = start.toLong()
+                trimEndMs = end.toLong()
+                Toast.makeText(this, "Recorte: ${formatTime(trimStartMs)} - ${formatTime(trimEndMs)}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     private fun importVideo() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
         startActivityForResult(intent, 200)
@@ -81,20 +120,29 @@ class VideoEditorActivity : AppCompatActivity() {
             uri?.let {
                 videoUris.add(it)
                 currentVideoIndex = videoUris.size - 1
-                playVideoAt(currentVideoIndex)
+                rebuildPlayer()
                 updateTimeline()
+                updateRangeSlider()
                 Toast.makeText(this, "Clip ${videoUris.size} añadido", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
+    private fun rebuildPlayer() {
+        val mediaSources = videoUris.map { uri ->
+            MediaItem.fromUri(uri)
+        }
+        val concatenatedSource = ConcatenatingMediaSource(*mediaSources.toTypedArray())
+        player.setMediaSource(concatenatedSource)
+        player.prepare()
+        player.play()
+        applySpeed()
+    }
+
     private fun playVideoAt(index: Int) {
         if (index in videoUris.indices) {
-            val mediaItem = MediaItem.fromUri(videoUris[index])
-            player.setMediaItem(mediaItem)
-            player.prepare()
+            player.seekTo(index, 0)
             player.play()
-            applySpeed()
         }
     }
 
@@ -109,6 +157,7 @@ class VideoEditorActivity : AppCompatActivity() {
                 setOnClickListener {
                     currentVideoIndex = index
                     playVideoAt(index)
+                    updateRangeSlider()
                 }
             }
             llTimeline.addView(imageView)
@@ -125,6 +174,25 @@ class VideoEditorActivity : AppCompatActivity() {
         } catch (e: Exception) { null }
     }
 
+    private fun updateRangeSlider() {
+        if (videoUris.isNotEmpty()) {
+            val duration = getVideoDuration(videoUris[currentVideoIndex])
+            rangeSlider.valueFrom = 0f
+            rangeSlider.valueTo = duration.toFloat()
+            rangeSlider.values = listOf(0f, duration.toFloat())
+        }
+    }
+
+    private fun getVideoDuration(uri: Uri): Long {
+        return try {
+            val retriever = MediaMetadataRetriever()
+            retriever.setDataSource(this, uri)
+            val duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0L
+            retriever.release()
+            duration
+        } catch (e: Exception) { 0L }
+    }
+
     // ==================== RECORTE ====================
 
     private var trimStartMs = 0L
@@ -135,34 +203,7 @@ class VideoEditorActivity : AppCompatActivity() {
             Toast.makeText(this, "Añade un video primero", Toast.LENGTH_SHORT).show()
             return
         }
-        val currentPos = player.currentPosition
-        val options = arrayOf(
-            "Marcar inicio: ${formatTime(trimStartMs)}",
-            "Marcar final: ${formatTime(trimEndMs)}",
-            "Resetear recorte"
-        )
-        AlertDialog.Builder(this)
-            .setTitle("Recorte del clip")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> {
-                        trimStartMs = currentPos
-                        Toast.makeText(this, "Inicio marcado", Toast.LENGTH_SHORT).show()
-                    }
-                    1 -> {
-                        trimEndMs = currentPos
-                        if (trimEndMs == 0L) trimEndMs = player.duration
-                        Toast.makeText(this, "Final marcado", Toast.LENGTH_SHORT).show()
-                    }
-                    2 -> {
-                        trimStartMs = 0L
-                        trimEndMs = player.duration
-                        Toast.makeText(this, "Recorte reseteado", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-            .setNegativeButton("Cancelar", null)
-            .show()
+        Toast.makeText(this, "Arrastra los bordes del slider para recortar", Toast.LENGTH_LONG).show()
     }
 
     // ==================== VELOCIDAD ====================
@@ -206,8 +247,14 @@ class VideoEditorActivity : AppCompatActivity() {
     }
 
     private fun applyFilter() {
-        // Los filtros se aplican visualmente en el preview si ExoPlayer tiene efecto.
-        // Para simplificar, guardamos el filtro seleccionado para aplicarlo en exportación.
+        val color = when (currentFilter) {
+            "Vintage" -> Color.argb(80, 255, 215, 0)
+            "Blanco y negro" -> Color.argb(100, 128, 128, 128)
+            "Cálido" -> Color.argb(80, 255, 140, 0)
+            "Frío" -> Color.argb(80, 0, 140, 255)
+            else -> Color.TRANSPARENT
+        }
+        filterOverlay.setBackgroundColor(color)
     }
 
     // ==================== MÚSICA ====================
@@ -218,10 +265,46 @@ class VideoEditorActivity : AppCompatActivity() {
             .setTitle("Música de fondo")
             .setItems(options) { _, which ->
                 selectedMusic = options[which]
+                if (selectedMusic == "Sin música") {
+                    stopMusic()
+                } else {
+                    playMusic(selectedMusic)
+                }
                 Toast.makeText(this, "Música: $selectedMusic", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancelar", null)
             .show()
+    }
+
+    private fun playMusic(track: String) {
+        stopMusic()
+        musicPlayer = MediaPlayer().apply {
+            try {
+                val assetPath = when (track) {
+                    "Lo-fi Chill" -> "music/lofi_chill.mp3"
+                    "Corporativo" -> "music/corporate_upbeat.mp3"
+                    "Cinemático" -> "music/cinematic_drama.mp3"
+                    "Urbano" -> "music/urban_beat.mp3"
+                    "Acústico" -> "music/acoustic_warm.mp3"
+                    else -> null
+                }
+                if (assetPath != null) {
+                    val assetFile = assets.openFd(assetPath)
+                    setDataSource(assetFile.fileDescriptor, assetFile.startOffset, assetFile.length)
+                    prepare()
+                    isLooping = true
+                    setVolume(musicVolume, musicVolume)
+                    start()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this, "No se pudo cargar la música", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun stopMusic() {
+        musicPlayer?.release()
+        musicPlayer = null
     }
 
     // ==================== TEXTO Y STICKERS ====================
@@ -238,11 +321,20 @@ class VideoEditorActivity : AppCompatActivity() {
             .setPositiveButton("Añadir") { _, _ ->
                 val text = input.text.toString()
                 if (text.isNotEmpty()) {
-                    Toast.makeText(this, "Texto añadido: $text", Toast.LENGTH_SHORT).show()
+                    addTextOverlay(text)
                 }
             }
             .setNegativeButton("Cancelar", null)
             .show()
+    }
+
+    private fun addTextOverlay(text: String) {
+        textOverlay.text = text
+        textOverlay.visibility = View.VISIBLE
+        textOverlay.alpha = 1f
+        textOverlay.setTextColor(Color.WHITE)
+        textOverlay.textSize = 24f
+        textOverlay.typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
     }
 
     private fun showStickersPanel() {
@@ -250,10 +342,19 @@ class VideoEditorActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle("Stickers")
             .setItems(stickers) { _, which ->
+                addStickerOverlay(stickers[which])
                 Toast.makeText(this, "Sticker: ${stickers[which]}", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancelar", null)
             .show()
+    }
+
+    private fun addStickerOverlay(sticker: String) {
+        stickerOverlay.setImageResource(android.R.drawable.ic_menu_emoticons)
+        stickerOverlay.visibility = View.VISIBLE
+        stickerOverlay.alpha = 1f
+        // Para simplificar, mostramos un TextView con el emoji
+        stickerOverlay.contentDescription = sticker
     }
 
     // ==================== EFECTOS Y AJUSTES ====================
@@ -272,7 +373,7 @@ class VideoEditorActivity : AppCompatActivity() {
     private fun showAdjustPanel() {
         AlertDialog.Builder(this)
             .setTitle("Ajustes")
-            .setMessage("Brillo, contraste, saturación, temperatura\n(se aplicarían en exportación)")
+            .setMessage("Brillo, contraste, saturación, temperatura\n(se aplicarán en exportación)")
             .setPositiveButton("OK", null)
             .show()
     }
@@ -280,12 +381,25 @@ class VideoEditorActivity : AppCompatActivity() {
     private fun showCanvasPanel() {
         val options = arrayOf("9:16", "1:1", "4:5", "16:9")
         AlertDialog.Builder(this)
-            .setTitle("Canvas")
+            .setTitle("Canvas (Relación de aspecto)")
             .setItems(options) { _, which ->
-                Toast.makeText(this, "Canvas: ${options[which]}", Toast.LENGTH_SHORT).show()
+                currentCanvas = options[which]
+                applyCanvas()
+                Toast.makeText(this, "Canvas: $currentCanvas", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancelar", null)
             .show()
+    }
+
+    private fun applyCanvas() {
+        val aspectRatio = when (currentCanvas) {
+            "16:9" -> 16f / 9f
+            "1:1" -> 1f
+            "4:5" -> 4f / 5f
+            "3:4" -> 3f / 4f
+            else -> 9f / 16f
+        }
+        playerView.layoutParams.height = (playerView.width / aspectRatio).toInt()
     }
 
     // ==================== TRANSICIÓN ====================
@@ -307,7 +421,7 @@ class VideoEditorActivity : AppCompatActivity() {
     private fun toggleMute() {
         isMuted = !isMuted
         player.volume = if (isMuted) 0f else 1f
-        findViewById<Button>(R.id.btnMute).text = if (isMuted) "🔇" else "🔊"
+        btnMute.text = if (isMuted) "🔇" else "🔊"
     }
 
     // ==================== EXPORTACIÓN ====================
@@ -320,7 +434,7 @@ class VideoEditorActivity : AppCompatActivity() {
 
         val progressDialog = AlertDialog.Builder(this)
             .setTitle("Exportando...")
-            .setMessage("Configuración:\nClips: ${videoUris.size}\nVelocidad: ${currentSpeed}x\nFiltro: $currentFilter\nMúsica: $selectedMusic\nTransición: $transitionType")
+            .setMessage("Configuración:\nClips: ${videoUris.size}\nVelocidad: ${currentSpeed}x\nFiltro: $currentFilter\nMúsica: $selectedMusic\nTransición: $transitionType\nCanvas: $currentCanvas")
             .setCancelable(false)
             .create()
         progressDialog.show()
@@ -342,7 +456,7 @@ class VideoEditorActivity : AppCompatActivity() {
                     progressDialog.dismiss()
                     AlertDialog.Builder(this)
                         .setTitle("Video exportado")
-                        .setMessage("${videoUris.size} clips\nTransición: $transitionType")
+                        .setMessage("${videoUris.size} clips\nTransición: $transitionType\nCanvas: $currentCanvas")
                         .setPositiveButton("Compartir") { _, _ -> compartirVideo(outputFile) }
                         .setNegativeButton("OK", null)
                         .show()
@@ -378,5 +492,6 @@ class VideoEditorActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         player.release()
+        stopMusic()
     }
 }
