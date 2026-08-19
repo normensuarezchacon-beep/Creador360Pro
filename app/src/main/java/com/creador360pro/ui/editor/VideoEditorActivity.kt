@@ -39,7 +39,6 @@ class VideoEditorActivity : AppCompatActivity() {
     private lateinit var stickerOverlay: TextView
     private lateinit var filterOverlay: View
     private lateinit var btnMute: Button
-    private lateinit var rangeSlider: com.google.android.material.slider.RangeSlider
 
     private var transitionType = "Sin transición"
     private var currentSpeed = 1.0f
@@ -62,14 +61,12 @@ class VideoEditorActivity : AppCompatActivity() {
         stickerOverlay = findViewById(R.id.stickerOverlay)
         filterOverlay = findViewById(R.id.filterOverlay)
         btnMute = findViewById(R.id.btnMute)
-        rangeSlider = findViewById(R.id.rangeSlider)
 
         player = ExoPlayer.Builder(this).build()
         playerView.player = player
 
         setupToolbar()
         setupTabs()
-        setupRangeSlider()
         importVideo()
     }
 
@@ -93,17 +90,6 @@ class VideoEditorActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnTabAdjust).setOnClickListener { showAdjustPanel() }
     }
 
-    private fun setupRangeSlider() {
-        rangeSlider.addOnChangeListener { slider, value, fromUser ->
-            if (fromUser) {
-                val values = slider.values
-                trimStartMs = values[0].toLong()
-                trimEndMs = values[1].toLong()
-                Toast.makeText(this, "Recorte: ${formatTime(trimStartMs)} - ${formatTime(trimEndMs)}", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
     private fun importVideo() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
         startActivityForResult(intent, 200)
@@ -118,7 +104,6 @@ class VideoEditorActivity : AppCompatActivity() {
                 currentVideoIndex = videoUris.size - 1
                 rebuildPlayer()
                 updateTimeline()
-                updateRangeSlider()
                 Toast.makeText(this, "Clip ${videoUris.size} añadido", Toast.LENGTH_SHORT).show()
             }
         }
@@ -154,7 +139,6 @@ class VideoEditorActivity : AppCompatActivity() {
                 setOnClickListener {
                     currentVideoIndex = index
                     playVideoAt(index)
-                    updateRangeSlider()
                 }
             }
             llTimeline.addView(imageView)
@@ -171,43 +155,37 @@ class VideoEditorActivity : AppCompatActivity() {
         } catch (e: Exception) { null }
     }
 
-    private fun updateRangeSlider() {
-        if (videoUris.isNotEmpty()) {
-            val duration = getVideoDuration(videoUris[currentVideoIndex])
-            rangeSlider.valueFrom = 0f
-            rangeSlider.valueTo = duration.toFloat()
-            rangeSlider.values = listOf(0f, duration.toFloat())
-        }
-    }
-
-    private fun getVideoDuration(uri: Uri): Long {
-        return try {
-            val retriever = MediaMetadataRetriever()
-            retriever.setDataSource(this, uri)
-            val duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0L
-            retriever.release()
-            duration
-        } catch (e: Exception) { 0L }
-    }
-
     private fun showTrimDialog() {
         if (videoUris.isEmpty()) {
             Toast.makeText(this, "Añade un video primero", Toast.LENGTH_SHORT).show()
             return
         }
-        Toast.makeText(this, "Arrastra los bordes del slider para recortar", Toast.LENGTH_LONG).show()
+        val currentPos = player.currentPosition
+        val options = arrayOf(
+            "Marcar inicio: ${formatTime(trimStartMs)}",
+            "Marcar final: ${formatTime(trimEndMs)}",
+            "Resetear recorte"
+        )
+        AlertDialog.Builder(this)
+            .setTitle("Recorte del clip")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> { trimStartMs = currentPos; Toast.makeText(this, "Inicio marcado", Toast.LENGTH_SHORT).show() }
+                    1 -> { trimEndMs = currentPos; if (trimEndMs == 0L) trimEndMs = player.duration; Toast.makeText(this, "Final marcado", Toast.LENGTH_SHORT).show() }
+                    2 -> { trimStartMs = 0L; trimEndMs = player.duration; Toast.makeText(this, "Recorte reseteado", Toast.LENGTH_SHORT).show() }
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun showSpeedDialog() {
-        val speeds = arrayOf("0.5x (lento)", "1x (normal)", "1.5x (rápido)", "2x (muy rápido)")
+        val speeds = arrayOf("0.5x", "1x", "1.5x", "2x")
         AlertDialog.Builder(this)
             .setTitle("Velocidad")
             .setItems(speeds) { _, which ->
                 currentSpeed = when (which) {
-                    0 -> 0.5f
-                    1 -> 1.0f
-                    2 -> 1.5f
-                    3 -> 2.0f
+                    0 -> 0.5f; 1 -> 1.0f; 2 -> 1.5f; 3 -> 2.0f
                     else -> 1.0f
                 }
                 applySpeed()
@@ -287,11 +265,7 @@ class VideoEditorActivity : AppCompatActivity() {
     }
 
     private fun showTextPanel() {
-        val input = EditText(this).apply {
-            hint = "Escribe tu texto"
-            gravity = Gravity.TOP
-            minLines = 2
-        }
+        val input = EditText(this).apply { hint = "Escribe tu texto"; gravity = Gravity.TOP; minLines = 2 }
         AlertDialog.Builder(this)
             .setTitle("Añadir texto")
             .setView(input)
@@ -306,7 +280,6 @@ class VideoEditorActivity : AppCompatActivity() {
     private fun addTextOverlay(text: String) {
         textOverlay.text = text
         textOverlay.visibility = View.VISIBLE
-        textOverlay.alpha = 1f
         textOverlay.setTextColor(Color.WHITE)
         textOverlay.textSize = 24f
         textOverlay.typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
@@ -316,9 +289,7 @@ class VideoEditorActivity : AppCompatActivity() {
         val stickers = arrayOf("😀", "😂", "🎉", "💯", "🔥", "⭐", "❤️", "👍")
         AlertDialog.Builder(this)
             .setTitle("Stickers")
-            .setItems(stickers) { _, which ->
-                addStickerOverlay(stickers[which])
-            }
+            .setItems(stickers) { _, which -> addStickerOverlay(stickers[which]) }
             .setNegativeButton("Cancelar", null)
             .show()
     }
@@ -343,7 +314,7 @@ class VideoEditorActivity : AppCompatActivity() {
     private fun showAdjustPanel() {
         AlertDialog.Builder(this)
             .setTitle("Ajustes")
-            .setMessage("Brillo, contraste, saturación, temperatura\n(se aplicarán en exportación)")
+            .setMessage("Brillo, contraste, saturación, temperatura")
             .setPositiveButton("OK", null)
             .show()
     }
@@ -375,9 +346,7 @@ class VideoEditorActivity : AppCompatActivity() {
         val transitions = arrayOf("Sin transición", "Fundido", "Deslizar izquierda", "Deslizar arriba", "Zoom")
         AlertDialog.Builder(this)
             .setTitle("Transición")
-            .setItems(transitions) { _, which ->
-                transitionType = transitions[which]
-            }
+            .setItems(transitions) { _, which -> transitionType = transitions[which] }
             .setNegativeButton("Cancelar", null)
             .show()
     }
@@ -393,10 +362,9 @@ class VideoEditorActivity : AppCompatActivity() {
             Toast.makeText(this, "Añade al menos un video", Toast.LENGTH_SHORT).show()
             return
         }
-
         val progressDialog = AlertDialog.Builder(this)
             .setTitle("Exportando...")
-            .setMessage("Configuración:\nClips: ${videoUris.size}\nVelocidad: ${currentSpeed}x\nFiltro: $currentFilter\nMúsica: $selectedMusic\nTransición: $transitionType\nCanvas: $currentCanvas")
+            .setMessage("Clips: ${videoUris.size}\nVelocidad: ${currentSpeed}x\nFiltro: $currentFilter\nMúsica: $selectedMusic\nTransición: $transitionType\nCanvas: $currentCanvas")
             .setCancelable(false)
             .create()
         progressDialog.show()
@@ -405,20 +373,16 @@ class VideoEditorActivity : AppCompatActivity() {
             try {
                 val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                 val outputFile = File(downloadsDir, "Creador360_${System.currentTimeMillis()}.mp4")
-
                 FileOutputStream(outputFile).use { out ->
                     videoUris.forEach { uri ->
-                        contentResolver.openInputStream(uri)?.use { input ->
-                            input.copyTo(out)
-                        }
+                        contentResolver.openInputStream(uri)?.use { input -> input.copyTo(out) }
                     }
                 }
-
                 runOnUiThread {
                     progressDialog.dismiss()
                     AlertDialog.Builder(this)
                         .setTitle("Video exportado")
-                        .setMessage("${videoUris.size} clips\nTransición: $transitionType\nCanvas: $currentCanvas")
+                        .setMessage("${videoUris.size} clips")
                         .setPositiveButton("Compartir") { _, _ -> compartirVideo(outputFile) }
                         .setNegativeButton("OK", null)
                         .show()
