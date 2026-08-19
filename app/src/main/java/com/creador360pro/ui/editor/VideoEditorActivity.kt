@@ -21,6 +21,8 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.PlaybackParameters
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.exoplayer2.ui.PlayerView
 import java.io.File
 import java.io.FileOutputStream
@@ -34,24 +36,20 @@ class VideoEditorActivity : AppCompatActivity() {
     private lateinit var llTimeline: LinearLayout
     private lateinit var seekBar: SeekBar
     private lateinit var textOverlay: TextView
-    private lateinit var stickerOverlay: ImageView
+    private lateinit var stickerOverlay: TextView
     private lateinit var filterOverlay: View
     private lateinit var btnMute: Button
     private lateinit var rangeSlider: com.google.android.material.slider.RangeSlider
 
     private var transitionType = "Sin transición"
-    private var transitionDuration = 500L
     private var currentSpeed = 1.0f
     private var isMuted = false
     private var currentFilter = "Normal"
     private var selectedMusic = "Sin música"
     private var currentCanvas = "9:16"
     private var musicPlayer: MediaPlayer? = null
-    private var musicVolume = 0.3f
-
-    // Capas de texto
-    private val textLayers = mutableListOf<Pair<TextView, Long>>()
-    private val stickerLayers = mutableListOf<Pair<ImageView, Long>>()
+    private var trimStartMs = 0L
+    private var trimEndMs = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,11 +96,9 @@ class VideoEditorActivity : AppCompatActivity() {
     private fun setupRangeSlider() {
         rangeSlider.addOnChangeListener { slider, value, fromUser ->
             if (fromUser) {
-                val start = slider.values[0]
-                val end = slider.values[1]
-                // Guardar recorte del clip actual
-                trimStartMs = start.toLong()
-                trimEndMs = end.toLong()
+                val values = slider.values
+                trimStartMs = values[0].toLong()
+                trimEndMs = values[1].toLong()
                 Toast.makeText(this, "Recorte: ${formatTime(trimStartMs)} - ${formatTime(trimEndMs)}", Toast.LENGTH_SHORT).show()
             }
         }
@@ -129,8 +125,9 @@ class VideoEditorActivity : AppCompatActivity() {
     }
 
     private fun rebuildPlayer() {
+        val dataSourceFactory = DefaultDataSource.Factory(this)
         val mediaSources = videoUris.map { uri ->
-            MediaItem.fromUri(uri)
+            ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(uri))
         }
         val concatenatedSource = ConcatenatingMediaSource(*mediaSources.toTypedArray())
         player.setMediaSource(concatenatedSource)
@@ -193,11 +190,6 @@ class VideoEditorActivity : AppCompatActivity() {
         } catch (e: Exception) { 0L }
     }
 
-    // ==================== RECORTE ====================
-
-    private var trimStartMs = 0L
-    private var trimEndMs = 0L
-
     private fun showTrimDialog() {
         if (videoUris.isEmpty()) {
             Toast.makeText(this, "Añade un video primero", Toast.LENGTH_SHORT).show()
@@ -205,8 +197,6 @@ class VideoEditorActivity : AppCompatActivity() {
         }
         Toast.makeText(this, "Arrastra los bordes del slider para recortar", Toast.LENGTH_LONG).show()
     }
-
-    // ==================== VELOCIDAD ====================
 
     private fun showSpeedDialog() {
         val speeds = arrayOf("0.5x (lento)", "1x (normal)", "1.5x (rápido)", "2x (muy rápido)")
@@ -221,7 +211,6 @@ class VideoEditorActivity : AppCompatActivity() {
                     else -> 1.0f
                 }
                 applySpeed()
-                Toast.makeText(this, "Velocidad: ${currentSpeed}x", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancelar", null)
             .show()
@@ -231,8 +220,6 @@ class VideoEditorActivity : AppCompatActivity() {
         player.playbackParameters = PlaybackParameters(currentSpeed)
     }
 
-    // ==================== FILTROS ====================
-
     private fun showFiltersPanel() {
         val filters = arrayOf("Normal", "Vintage", "Blanco y negro", "Cálido", "Frío")
         AlertDialog.Builder(this)
@@ -240,7 +227,6 @@ class VideoEditorActivity : AppCompatActivity() {
             .setItems(filters) { _, which ->
                 currentFilter = filters[which]
                 applyFilter()
-                Toast.makeText(this, "Filtro: $currentFilter", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancelar", null)
             .show()
@@ -257,20 +243,13 @@ class VideoEditorActivity : AppCompatActivity() {
         filterOverlay.setBackgroundColor(color)
     }
 
-    // ==================== MÚSICA ====================
-
     private fun showMusicPanel() {
         val options = arrayOf("Sin música", "Lo-fi Chill", "Corporativo", "Cinemático", "Urbano", "Acústico")
         AlertDialog.Builder(this)
             .setTitle("Música de fondo")
             .setItems(options) { _, which ->
                 selectedMusic = options[which]
-                if (selectedMusic == "Sin música") {
-                    stopMusic()
-                } else {
-                    playMusic(selectedMusic)
-                }
-                Toast.makeText(this, "Música: $selectedMusic", Toast.LENGTH_SHORT).show()
+                if (selectedMusic == "Sin música") stopMusic() else playMusic(selectedMusic)
             }
             .setNegativeButton("Cancelar", null)
             .show()
@@ -293,11 +272,11 @@ class VideoEditorActivity : AppCompatActivity() {
                     setDataSource(assetFile.fileDescriptor, assetFile.startOffset, assetFile.length)
                     prepare()
                     isLooping = true
-                    setVolume(musicVolume, musicVolume)
+                    setVolume(0.3f, 0.3f)
                     start()
                 }
             } catch (e: Exception) {
-                Toast.makeText(this, "No se pudo cargar la música", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@VideoEditorActivity, "No se pudo cargar la música", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -306,8 +285,6 @@ class VideoEditorActivity : AppCompatActivity() {
         musicPlayer?.release()
         musicPlayer = null
     }
-
-    // ==================== TEXTO Y STICKERS ====================
 
     private fun showTextPanel() {
         val input = EditText(this).apply {
@@ -320,9 +297,7 @@ class VideoEditorActivity : AppCompatActivity() {
             .setView(input)
             .setPositiveButton("Añadir") { _, _ ->
                 val text = input.text.toString()
-                if (text.isNotEmpty()) {
-                    addTextOverlay(text)
-                }
+                if (text.isNotEmpty()) addTextOverlay(text)
             }
             .setNegativeButton("Cancelar", null)
             .show()
@@ -343,21 +318,16 @@ class VideoEditorActivity : AppCompatActivity() {
             .setTitle("Stickers")
             .setItems(stickers) { _, which ->
                 addStickerOverlay(stickers[which])
-                Toast.makeText(this, "Sticker: ${stickers[which]}", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancelar", null)
             .show()
     }
 
     private fun addStickerOverlay(sticker: String) {
-        stickerOverlay.setImageResource(android.R.drawable.ic_menu_emoticons)
+        stickerOverlay.text = sticker
+        stickerOverlay.textSize = 48f
         stickerOverlay.visibility = View.VISIBLE
-        stickerOverlay.alpha = 1f
-        // Para simplificar, mostramos un TextView con el emoji
-        stickerOverlay.contentDescription = sticker
     }
-
-    // ==================== EFECTOS Y AJUSTES ====================
 
     private fun showEffectsPanel() {
         val effects = arrayOf("Sin efecto", "Glitch", "VHS", "Cine", "Desenfoque")
@@ -381,11 +351,10 @@ class VideoEditorActivity : AppCompatActivity() {
     private fun showCanvasPanel() {
         val options = arrayOf("9:16", "1:1", "4:5", "16:9")
         AlertDialog.Builder(this)
-            .setTitle("Canvas (Relación de aspecto)")
+            .setTitle("Canvas")
             .setItems(options) { _, which ->
                 currentCanvas = options[which]
                 applyCanvas()
-                Toast.makeText(this, "Canvas: $currentCanvas", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancelar", null)
             .show()
@@ -396,13 +365,11 @@ class VideoEditorActivity : AppCompatActivity() {
             "16:9" -> 16f / 9f
             "1:1" -> 1f
             "4:5" -> 4f / 5f
-            "3:4" -> 3f / 4f
             else -> 9f / 16f
         }
         playerView.layoutParams.height = (playerView.width / aspectRatio).toInt()
+        playerView.requestLayout()
     }
-
-    // ==================== TRANSICIÓN ====================
 
     private fun showTransitionDialog() {
         val transitions = arrayOf("Sin transición", "Fundido", "Deslizar izquierda", "Deslizar arriba", "Zoom")
@@ -410,21 +377,16 @@ class VideoEditorActivity : AppCompatActivity() {
             .setTitle("Transición")
             .setItems(transitions) { _, which ->
                 transitionType = transitions[which]
-                Toast.makeText(this, "Transición: $transitionType", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancelar", null)
             .show()
     }
-
-    // ==================== SILENCIO ====================
 
     private fun toggleMute() {
         isMuted = !isMuted
         player.volume = if (isMuted) 0f else 1f
         btnMute.text = if (isMuted) "🔇" else "🔊"
     }
-
-    // ==================== EXPORTACIÓN ====================
 
     private fun exportVideo() {
         if (videoUris.isEmpty()) {
