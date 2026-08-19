@@ -6,6 +6,7 @@
     android:orientation="vertical"
     android:background="#0D0D0D">
 
+    <!-- Barra superior -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="44dp"
@@ -14,13 +15,53 @@
         android:orientation="horizontal"
         android:paddingHorizontal="4dp">
 
-        <Button android:id="@+id/btnBack" android:layout_width="40dp" android:layout_height="32dp" android:text="←" android:textSize="16sp" android:backgroundTint="#2A2A2A" android:minWidth="0dp" />
-        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Editor de Video" android:textColor="#FFFFFF" android:textSize="14sp" android:gravity="center" />
-        <Button android:id="@+id/btnUndo" android:layout_width="36dp" android:layout_height="32dp" android:text="↩" android:backgroundTint="#2A2A2A" android:minWidth="0dp" />
-        <Button android:id="@+id/btnRedo" android:layout_width="36dp" android:layout_height="32dp" android:text="↪" android:backgroundTint="#2A2A2A" android:minWidth="0dp" android:layout_marginStart="4dp" />
-        <Button android:id="@+id/btnExportTop" android:layout_width="50dp" android:layout_height="32dp" android:text="Guardar" android:textSize="10sp" android:backgroundTint="#8B5CF6" android:minWidth="0dp" android:layout_marginStart="4dp" />
+        <Button
+            android:id="@+id/btnBack"
+            android:layout_width="40dp"
+            android:layout_height="32dp"
+            android:text="←"
+            android:textSize="16sp"
+            android:backgroundTint="#2A2A2A"
+            android:minWidth="0dp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Editor de Video"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:gravity="center" />
+
+        <Button
+            android:id="@+id/btnUndo"
+            android:layout_width="36dp"
+            android:layout_height="32dp"
+            android:text="↩"
+            android:backgroundTint="#2A2A2A"
+            android:minWidth="0dp" />
+
+        <Button
+            android:id="@+id/btnRedo"
+            android:layout_width="36dp"
+            android:layout_height="32dp"
+            android:text="↪"
+            android:backgroundTint="#2A2A2A"
+            android:minWidth="0dp"
+            android:layout_marginStart="4dp" />
+
+        <Button
+            android:id="@+id/btnExportTop"
+            android:layout_width="50dp"
+            android:layout_height="32dp"
+            android:text="Guardar"
+            android:textSize="10sp"
+            android:backgroundTint="#8B5CF6"
+            android:minWidth="0dp"
+            android:layout_marginStart="4dp" />
     </LinearLayout>
 
+    <!-- Zona de reproducción -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -38,7 +79,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text=""
             android:textColor="#FFFFFF"
             android:textSize="24sp"
             android:visibility="gone" />
@@ -57,6 +97,7 @@
             android:background="@android:color/transparent" />
     </FrameLayout>
 
+    <!-- Timeline y controles -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -90,7 +131,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:stepSize="100"
-            android:values="@array/initial_slider_values"
+            app:values="@array/initial_slider_values"
             app:labelBehavior="gone" />
 
         <LinearLayout
@@ -100,14 +141,58 @@
             android:orientation="horizontal"
             android:paddingHorizontal="4dp">
 
-            <Button android:id="@+id/btnAddClip" android:layout_width="0dp" android:layout_height="36dp" android:layout_weight="1" android:text="+ Clip" android:textSize="11sp" android:backgroundTint="#2A2A2A" android:layout_marginEnd="4dp" />
-            <Button android:id="@+id/btnTransition" android:layout_width="0dp" android:layout_height="36dp" android:layout_weight="1" android:text="🔄 Transición" android:textSize="11sp" android:backgroundTint="#2A2A2A" android:layout_marginEnd="4dp" />
-            <Button android:id="@+id/btnTrim" android:layout_width="0dp" android:layout_height="36dp" android:layout_weight="1" android:text="✂️ Recortar" android:textSize="11sp" android:backgroundTint="#2A2A2A" android:layout_marginEnd="4dp" />
-            <Button android:id="@+id/btnSpeed" android:layout_width="0dp" android:layout_height="36dp" android:layout_weight="1" android:text="⚡ Veloc." android:textSize="11sp" android:backgroundTint="#2A2A2A" android:layout_marginEnd="4dp" />
-            <Button android:id="@+id/btnMute" android:layout_width="0dp" android:layout_height="36dp" android:layout_weight="1" android:text="🔊" android:textSize="11sp" android:backgroundTint="#2A2A2A" />
+            <Button
+                android:id="@+id/btnAddClip"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:text="+ Clip"
+                android:textSize="11sp"
+                android:backgroundTint="#2A2A2A"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btnTransition"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:text="🔄 Transición"
+                android:textSize="11sp"
+                android:backgroundTint="#2A2A2A"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btnTrim"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:text="✂️ Recortar"
+                android:textSize="11sp"
+                android:backgroundTint="#2A2A2A"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btnSpeed"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:text="⚡ Veloc."
+                android:textSize="11sp"
+                android:backgroundTint="#2A2A2A"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btnMute"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:text="🔊"
+                android:textSize="11sp"
+                android:backgroundTint="#2A2A2A" />
         </LinearLayout>
     </LinearLayout>
 
+    <!-- Pestañas de herramientas -->
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="56dp"
